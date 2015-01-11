@@ -15,23 +15,73 @@ var settings = {
     collapsedGroups: [true, false, false, false]
 };
 
-// Routes
-
-indexRoute = crossroads.addRoute('');
-completeRoute = crossroads.addRoute('all');
-revisionRoute = crossroads.addRoute('revision/{hash}');
-graphIndexRoute = crossroads.addRoute('graphs');
-graphRoute = crossroads.addRoute('graph/{benchName*}');
-
-function handleChanges(newHash) {
-  crossroads.parse(newHash);
-}
-
 // Signals
 
 viewChanged = new signals.Signal()
 dataChanged = new signals.Signal()
 
+
+// Routes
+
+var routes = {
+    index: 
+        { regex: /^$/,
+          download: ['latest-summaries.json'],
+          url: function () {return ""},
+        },
+    complete:
+        { regex: /^all$/,
+          download: ['all-summaries.json'],
+          url: function () {return "all"},
+        },
+    graphIndex:
+        { regex: /^graphs$/,
+          download: ['benchNames.json'],
+          url: function () {return "graphs"},
+        },
+    revision:
+        { regex: /^revision\/([a-f0-9]+)$/,
+          viewData: function (match) { return { hash: match[1] }; },
+          download: function () {
+            return ['benchNames.json','reports/' + viewData.hash + '.json'];
+          },
+          url: function (hash) { return "revision/" + hash; },
+        },
+    graph:
+        { regex: /^graph\/(.*)$/,
+          viewData: function (match) { return { benchName: match[1] }; },
+          download: function () {
+            return ['latest-summaries.json','graphs/' + viewData.benchName + '.json'];
+          },
+          url: function (benchName) { return "graph/" + benchName; },
+        },
+};
+
+function parseRoute (path) {
+    $.each(routes, function (v,r) {
+        var match = r.regex.exec(path);
+        if (match) {
+            view = v;
+            if (r.viewData) viewData = r.viewData(match);
+            return false;
+        } else {
+            return true;
+        }
+    });
+    viewChanged.dispatch();
+}
+
+viewChanged.add(function () {
+    if (routes[view].download) {
+        d = routes[view].download;
+        if ($.isFunction(d)) {d = d()}
+        d.forEach(function (url) { getJSON(url) });
+    }
+});
+
+function handleHashChange(newHash) {
+    parseRoute(newHash);
+}
 
 // Data
 
@@ -76,10 +126,10 @@ $(function ()  {
 
 Handlebars.registerHelper('revisionLink', function(hash) {
   if (!hash) { return "#"; }
-  return "#" + revisionRoute.interpolate({hash:hash});
+  return "#" + routes.revision.url(hash);
 });
 Handlebars.registerHelper('graphLink', function(benchName) {
-  return "#" + graphRoute.interpolate({'benchName*':benchName});
+  return "#" + routes.graph.url(benchName);
 });
 Handlebars.registerHelper('diffLink', function(rev1, rev2) {
   return data.settings.cgitLink + "/commitdiff/" + rev2
@@ -88,13 +138,13 @@ Handlebars.registerHelper('logLink', function(rev) {
   return Handlebars.compile(data.settings.logLink)({rev:rev});
 });
 Handlebars.registerHelper('indexLink', function() {
-  return "#" + indexRoute.interpolate();
+  return "#" + routes.index.url();
 });
 Handlebars.registerHelper('allLink', function() {
-  return "#" + completeRoute.interpolate();
+  return "#" + routes.complete.url();
 });
 Handlebars.registerHelper('graphIndexLink', function() {
-  return "#" + graphIndexRoute.interpolate();
+  return "#" + routes.graphIndex.url();
 });
 Handlebars.registerHelper('recentCommits', function(revisions) {
   return commitsFrom(revisions, data.latest, data.settings.limitRecent);
@@ -277,40 +327,10 @@ function setupChart () {
 		var i = item.dataIndex;
                 var hash = commits[i].summary.hash;
 		
-		goTo(revisionRoute, {hash: hash});
+		goTo(routes.revision.url(hash));
 	}
     });
 }
-
-indexRoute.matched.add(function(){
-    view = 'index';
-    viewChanged.dispatch();
-    getJSON("latest-summaries.json");
-});
-completeRoute.matched.add(function(){
-    view = 'complete';
-    viewChanged.dispatch();
-    getJSON("all-summaries.json");
-});
-revisionRoute.matched.add(function(hash){
-    view = 'revision';
-    viewData = { hash : hash };
-    viewChanged.dispatch();
-    getJSON("benchNames.json");
-    getJSON("reports/" + hash + ".json");
-});
-graphIndexRoute.matched.add(function(){
-    view = 'graphIndex';
-    viewChanged.dispatch();
-    getJSON("benchNames.json");
-});
-graphRoute.matched.add(function(benchName){
-    view = 'graph';
-    viewData = { benchName : benchName };
-    viewChanged.dispatch();
-    getJSON("latest-summaries.json");
-    getJSON("graphs/" + benchName + ".json");
-});
 
 function updateCollapsedGroups() {
     // Does not work yet...
@@ -395,8 +415,8 @@ $(function (){
 
 // Redirection
 
-function goTo(route, params) {
-	hasher.setHash(route.interpolate(params));
+function goTo(path) {
+	hasher.setHash(path);
 }
 
 
@@ -419,8 +439,8 @@ $(function() {
         data.latest = latest;
 
         getJSON("settings.json", function (settings) {
-            hasher.changed.add(handleChanges);
-            hasher.initialized.add(handleChanges);
+            hasher.changed.add(handleHashChange);
+            hasher.initialized.add(handleHashChange);
             hasher.init();
         });
     }, 'text');
