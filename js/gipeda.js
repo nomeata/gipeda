@@ -220,7 +220,7 @@ function groupStats (benchResults) {
   return {
     totalCount: benchResults.length,
     improvementCount: benchResults.filter(function (br) { return br.changeType == 'Improvement' }).length,
-    regressionCount: benchResults.filter(function (br) { return br.changeType == 'Regression' }).length,
+    regressionCount:  benchResults.filter(function (br) { return br.changeType == 'Regression' }).length,
   }
 }
 
@@ -237,7 +237,7 @@ dataViewPrepare = {
     var groups = data.benchGroups.map(function (group) {
       var benchmarks = group.groupMembers.map(function (bn) {
 	return rev.benchResults[bn]
-      });
+      }).filter(function (br) {return br});
       return {
 	groupName: group.groupName,
 	benchResults: benchmarks,
@@ -429,8 +429,6 @@ function updateBenchFilter() {
 function updateNothingToSee() {
     $('.nothing-to-see')
 	.toggle(jQuery.active == 0 && $('.bench-panel:visible, tr.summary-row:not(.summary-row-collapsed)').length == 0);
-
-
 }
 
 $(function (){

@@ -277,6 +277,7 @@ html {
  <div class="container">
   <div class="row">
    <div class="col-md-6 col-md-push-6">
+    {{#if rev.summary}}
     <h2>
      Commit {{shortRev rev.summary.hash}}
     </h2>
@@ -294,6 +295,7 @@ html {
     {{/if}}
     </p> 
     <pre>{{rev.gitLog}}</pre>
+    {{/if}}
    </div>
 
    <div class="col-md-6 col-md-pull-6">
