@@ -197,7 +197,8 @@ html {
 </script>
 
 <script id="revTooltip" type="text/x-handlebars-template">
- <code>{{ shortRev hash }}</code>: {{ value }}<br/> 
+ <a href="{{revisionLink hash}}"><code>{{shortRev hash}}</code></a>:
+ {{ value }}<br/>
  {{ humanDate gitDate}}<br/>
  {{ gitSubject }}</br>
  {{> summary-icons stats}}
