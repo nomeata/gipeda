@@ -1,0 +1,54 @@
+title: GHC Speed
+cgitLink: https://git.haskell.org/ghc.git
+logLink: https://raw.githubusercontent.com/nomeata/ghc-speed-logs/master/{{rev}}.log
+limitRecent: 50
+start: 55e7ab1210975e6276f3cab3ac0e1f35bcd772f0
+
+benchmarks:
+  - match: "*"
+    smallerIsBetter: True
+    threshold: 3
+    type: integral
+    group: (ungrouped)
+  - match: "testsuite/*"
+    unit: tests
+    type: small integral
+    group: Testsuite
+  - match: testsuite/tests
+    smallerIsBetter: False
+    type: integral
+  - match: testsuite/expected passes
+    smallerIsBetter: False
+    type: integral
+
+  - match: "parser/*"
+    unit: conflicts
+    integral: True
+    type: small integral
+    group: Parser
+
+  - match: "nofib/size/*"
+    unit: bytes
+    group: Nofib sizes
+
+  - match: "nofib/allocs/*"
+    unit: bytes
+    group: Nofib allocations
+
+  - match: "nofib/time/*"
+    unit: seconds
+    group: Nofib runtimes
+    type: float
+
+  - match: "buildtime/*"
+    unit: seconds
+    group: Buildtimes
+    type: float
+
+  - match: "nofib/time/circsim"
+    threshold: 5
+
+  - match: "tests/alloc/*"
+    unit: bytes
+    group: Testsuite allocations
+

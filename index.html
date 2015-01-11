@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Git Speed</title>
+<script type="text/javascript" src="js/js-signals/dist/signals.min.js"></script>
+<script type="text/javascript" src="js/Hasher/dist/js/hasher.min.js"></script>
+<script type="text/javascript" src="js/crossroads.js/dist/crossroads.min.js"></script>
+<script type="text/javascript" src="js/handlebars-v2.0.0.js"></script>
+<script src="js/jquery-1.11.1.min.js"></script>
+<script src="js/jquery.timeago.js"></script>
+
+<script src="js/flot/jquery.flot.min.js"></script>
+<script src="js/flot/jquery.flot.resize.min.js"></script>
+
+<script language="javascript" type="text/javascript" src="js/blockui/jquery.blockUI.js"></script>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+
+
+<script type="text/javascript" src="js/gipeda.js"></script>
+
+<style type="text/css">
+html {
+    overflow-y:scroll;
+}
+
+.panel-heading .accordion-toggle .indicator-untoggled {
+    display: none;
+    color: grey;
+    padding-left: 1em;
+}
+.panel-heading .accordion-toggle .indicator-toggled {
+    display: inline;
+    color: grey;
+    padding-left: 1em;
+}
+.panel-heading .accordion-toggle.collapsed .indicator-untoggled {
+    display: inline;
+}
+.panel-heading .accordion-toggle.collapsed .indicator-toggled {
+    display: none;
+}
+
+.summary-row-collapsed {
+    display:none;
+}
+
+.benchmark-table {
+    margin-bottom: 0px;
+}
+
+/* Trying to visualize collapsed rows */
+.summary-table {
+    border-collapse:collapse; 
+    
+}
+.summary-row-collapsed + .summary-row td {
+    border-top: 4px dotted #DDD;
+
+}
+/* Couldn’t make it to work easily
+.summary-row-collapsed td {
+    background-color:grey;
+    padding:1px;
+    border: 0px;
+    height:1px !important;
+    line-height:0px;
+    padding:0px !important;
+    overflow:hidden !important;
+}
+*/
+
+/* Order matters! */
+.summary-improvement , .row-Improvement {
+    background-color: #dff0d8;
+}
+.summary-regression, .row-Regression {
+    background-color: #fcf8e3;
+}
+
+.benchmark-name a.graph-link {
+    visibility:hidden;
+}
+.benchmark-name:hover a.graph-link {
+    visibility:visible;
+}
+
+</style>
+
+<script id="nothing" type="text/x-handlebars-template">
+  <div class="jumbotron nothing-to-see" style="display:none">
+   <p>Nothing selected... try the buttons in the top right corner.</p>
+  </div>
+</script>
+
+<script id="nav"  type="text/x-handlebars-template">
+ <nav class="navbar navbar-default">
+  <div class="container">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#">{{ settings.title }}</a>
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav">
+        <li><a href="{{indexLink}}">Recent</a></li>
+        <li><a href="{{allLink}}">All</a></li>
+        <li><a href="{{revisionLink latest}}">Reports</a></li>
+        <li><a href="{{graphIndexLink}}">Graphs</a></li>
+      </ul>
+
+      <p class="navbar-text nav-loading">Loading data...</p>
+
+      <div class="nav navbar-nav navbar-right">
+       <div class="btn-group" role="group">
+        <button type="button" class="btn btn-default navbar-btn active benchSelector" id="show-improvements" title="Show improvements">
+         <!-- <span class="glyphicon glyphicon-plus text-success"></span> -->
+         <span class="text-success" style="font-weight:bold">+</span>
+        </button>
+        <button type="button" class="btn btn-default navbar-btn benchSelector" id="show-boring" title="Show unchanged">
+         <span style="font-weight:bold">=</span>
+        </button>
+        <button type="button" class="btn btn-default navbar-btn active benchSelector" id="show-regressions" title="Show regressions">
+         <!-- <span class="glyphicon glyphicon-minus text-warning"></span> -->
+         <span class="text-warning" style="font-weight:bold">-</span>
+        </button>
+       </div>
+      </div>
+    </div>
+  </div>
+ </nav>
+</script>
+
+<script id="summary-icons"  type="text/x-handlebars-template">
+  <span  title="number of benchmarks">
+   {{totalCount}}
+   <span class="glyphicon glyphicon-stats"></span>
+  </span>
+  <span title="number of improvements"> 
+   {{improvementCount}}
+   <span class="glyphicon glyphicon-plus text-success"></span>
+  </span>
+  <span title="number of regressions">
+   {{regressionCount}}
+   <span class="glyphicon glyphicon-minus text-warning"></span>
+  </span>
+</script>
+
+<script id="summary-list"  type="text/x-handlebars-template">
+  {{> nothing }}
+  <table class="table summary-table">
+   {{#each this}}
+   {{#with summary}}
+    <tr
+     class="
+       summary-row
+       {{#if stats.improvementCount}}summary-improvement{{/if}}
+       {{#if stats.regressionCount}}summary-regression{{/if}}
+     ">
+     <td class="col-md-2 text-right">
+       <abbrv class="timeago" title="{{ iso8601 gitDate }}">{{ humanDate gitDate}}</abbrv>
+     </td>
+     <td class="col-md-1">
+      <a href="{{revisionLink hash}}">
+        <code>{{shortRev hash}}</code>
+      </a>
+     </td>
+     <td class="col-md-7">
+       {{ gitSubject }}
+     </td>
+     <td class="col-md-2 text-right">
+      {{> summary-icons stats}}
+     </td>
+    </tr>
+   {{/with}}
+   {{/each}}
+  </table>
+</script>
+
+<script id="revTooltip" type="text/x-handlebars-template">
+ <code>{{ shortRev hash }}</code>: {{ value }}<br/> 
+ {{ humanDate gitDate}}<br/>
+ {{ gitSubject }}</br>
+ {{> summary-icons stats}}
+</script>
+
+<script id="graphIndex" type="text/x-handlebars-template">
+ {{> nav}}
+ <div class="container">
+  <h1>Benchmarks</h1>
+ </div>
+ <div class="container">
+    <div class="panel-group" role="tablist">
+     {{#each benchGroups}}
+      <div class="panel panel-default">
+       <div class="panel-heading" role="tab" id="heading-{{@index}}">
+        <h4 class="panel-title">
+         <a class="accordion-toggle" data-toggle="collapse" href="#table-{{@index}}">
+         {{groupName}}
+         </a>
+        </h4>
+       </div>
+
+       <div id="table-{{@index}}" class="panel-collapse collapse in" role="tabpanel">
+        <div class="panel-body">
+         <table class="table table-condensed benchmark-table">
+          <thead>
+          <tr>
+           <th class="col-md-6">Benchmark name</th>
+          </tr>
+          </thead>
+          <tbody>
+           {{#each groupMembers}}
+            <tr>
+            <td class="benchmark-name">
+	     {{this}}
+	     <a class="graph-link" title="Graphs" href="{{graphLink this}}">
+	      <span class="glyphicon glyphicon-signal"/>
+	     </a>
+	    </td>
+            </tr>
+           {{/each}}
+          </tbody>
+         </table>
+        </div>
+       </div> 
+      </div>
+     {{/each}}
+    </div>
+   </div>
+</script>
+
+<script id="index" type="text/x-handlebars-template">
+ {{> nav}}
+ <div class="container">
+  <h1>Recent commits</h1>
+  {{> summary-list (recentCommits revisions)}}
+ </div>
+ <div class="container">
+  <p class="text-center">
+    <a href="{{allLink}}">view older commits...</a>
+  </p>
+ </div>
+</script>
+
+<script id="complete" type="text/x-handlebars-template">
+ {{> nav}}
+ <div class="container">
+  <h1>All commits</h1>
+  {{> summary-list (allCommits revisions)}}
+ </div>
+</script>
+
+
+<script id="revision" type="text/x-handlebars-template">
+ {{> nav}}
+
+ <div class="container">
+  <div class="row">
+   <div class="col-md-6 col-md-push-6">
+    <h2>
+     Commit {{shortRev rev.summary.hash}}
+    </h2>
+    <p>
+    {{#if rev.summary.parents}}
+    Displaying changes since:  
+    {{#with (lookup rev.summary.parents 0)}}
+      <a href="{{revisionLink this}}"><code>{{shortRev this}}</code></a> – 
+      <a href="{{diffLink this ../rev.summary.hash}}">View diff</a>
+    {{/with}} –
+      <a href="{{logLink rev.summary.hash}}">View buildlog</a> –
+      {{> summary-icons rev.summary.stats }}
+    {{else}}
+    No parent commit found.
+    {{/if}}
+    </p> 
+    <pre>{{rev.gitLog}}</pre>
+   </div>
+
+   <div class="col-md-6 col-md-pull-6">
+    {{> nothing }}
+    <div class="panel-group" role="tablist">
+     {{#each groups}}
+      <div class="panel panel-default bench-panel">
+       <div class="panel-heading" role="tab" id="heading-{{@index}}">
+        <h4 class="panel-title">
+         <a class="accordion-toggle" data-toggle="collapse" href="#table-{{@index}}">
+         {{groupName}}
+         <span class="stats pull-right">
+          {{> summary-icons groupStats}}
+          <span class="indicator-toggled glyphicon glyphicon-chevron-down text-grey"/>
+          <span class="indicator-untoggled glyphicon glyphicon-chevron-right text-grey"/>
+         </span>
+         </a>
+        </h4>
+       </div>
+
+       <div id="table-{{@index}}" class="panel-collapse collapse in" role="tabpanel">
+        <div class="panel-body">
+         <table class="table table-condensed benchmark-table">
+          <thead>
+          <tr>
+          <th class="col-md-6">Benchmark name</th>
+          <th class="col-md-2 text-right">prevoius</th>
+          <th class="col-md-2 text-right"></th>
+          <th class="col-md-2 text-right">value</th>
+          </tr>
+          </thead>
+          <tbody>
+           {{#each benchResults}}
+            <tr class="row-result row-{{changeType}}">
+            <td class="benchmark-name">
+	     {{name}}
+	     <a class="graph-link" title="Graphs" href="{{graphLink name}}">
+	      <span class="glyphicon glyphicon-signal"/>
+	     </a>
+	    </td>
+            <td class="text-right">{{previous}}</td>
+            <td class="text-right">{{change}}</td>
+            <td class="text-right">{{value}}</td>
+            </tr>
+           {{/each}}
+          </tbody>
+         </table>
+        </div>
+       </div> 
+      </div>
+     {{/each}}
+    </div>
+   </div>
+  </div>
+</script>
+
+<script id="graph" type="text/x-handlebars-template">
+ {{> nav}}
+
+ <div class="container">
+ <h2>{{benchName}}</h2>
+
+ <div id="benchChart" style="width:100%; height:400px">
+ </div>
+</script>
+
+</head>
+
+<body>
+
+<div id="main">
+<div id="loading">
+<p>
+Loading...
+</p>
+<p>(If this does not disappear, then you do not have JavaScript enabled, or something else is broken.)</p>
+</div>
+</div>
+</body>
