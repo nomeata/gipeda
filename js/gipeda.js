@@ -310,9 +310,9 @@ function setupChart () {
 		// ticks: values.map(function (x,i){return [i,x[0]]}),
 		tickFormatter: function (i,axis) {
 			if (i > 0 && i <= commits.length) {
-				rev = commits[commits.length - i];
-				if (! rev) return '';
-				return shortRev(rev.summary.hash);
+				var rev = commits[commits.length - i];
+                                var date = new Date(rev.summary.gitDate * 1000);
+                                return $.timeago(date);
 			} else {
 				return '';
 			}
