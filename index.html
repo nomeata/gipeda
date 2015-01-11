@@ -102,20 +102,41 @@ html {
 <script id="nav"  type="text/x-handlebars-template">
  <nav class="navbar navbar-default">
   <div class="container">
-    <!-- Brand and toggle get grouped for better mobile display -->
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
+
+    <!-- Inspired by http://stackoverflow.com/a/22978968/946226 -->
+    <!-- Title -->
+    <div class="navbar-header pull-left">
       <a class="navbar-brand" href="#">{{ settings.title }}</a>
     </div>
 
-    <!-- Collect the nav links, forms, and other content for toggling -->
-    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-      <ul class="nav navbar-nav">
+    <!-- 'Sticky' (non-collapsing) right-side menu item(s) -->
+    <div class="navbar-header pull-right">
+      <ul class="nav pull-left">
+       <li class="pull-left">
+	<div class="btn-group" role="group">
+	 <button type="button" class="btn btn-default navbar-btn active benchSelector" id="show-improvements" title="Show improvements">
+	  <!-- <span class="glyphicon glyphicon-plus text-success"></span> -->
+	  <span class="text-success" style="font-weight:bold">+</span>
+	 </button>
+	 <button type="button" class="btn btn-default navbar-btn benchSelector" id="show-boring" title="Show unchanged">
+	  <span style="font-weight:bold">=</span>
+	 </button>
+	 <button type="button" class="btn btn-default navbar-btn active benchSelector" id="show-regressions" title="Show regressions">
+	  <!-- <span class="glyphicon glyphicon-minus text-warning"></span> -->
+	  <span class="text-warning" style="font-weight:bold">-</span>
+	 </button>
+	</div>
+       </li>
+      </ul>
+
+      <!-- Required bootstrap placeholder for the collapsed menu -->
+      <button type="button" data-toggle="collapse" data-target=".navbar-collapse" class="navbar-toggle"><span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button>
+    </div>
+
+    <!-- The Collapsing items            navbar-left or navbar-right -->
+    <div class="collapse navbar-collapse navbar-left" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav pull-right">
+      <!--                      pull-right keeps the drop-down in line -->
         <li><a href="{{indexLink}}">Recent</a></li>
         <li><a href="{{allLink}}">All</a></li>
         <li><a href="{{revisionLink latest}}">Reports</a></li>
@@ -124,21 +145,6 @@ html {
 
       <p class="navbar-text nav-loading">Loading data...</p>
 
-      <div class="nav navbar-nav navbar-right">
-       <div class="btn-group" role="group">
-        <button type="button" class="btn btn-default navbar-btn active benchSelector" id="show-improvements" title="Show improvements">
-         <!-- <span class="glyphicon glyphicon-plus text-success"></span> -->
-         <span class="text-success" style="font-weight:bold">+</span>
-        </button>
-        <button type="button" class="btn btn-default navbar-btn benchSelector" id="show-boring" title="Show unchanged">
-         <span style="font-weight:bold">=</span>
-        </button>
-        <button type="button" class="btn btn-default navbar-btn active benchSelector" id="show-regressions" title="Show regressions">
-         <!-- <span class="glyphicon glyphicon-minus text-warning"></span> -->
-         <span class="text-warning" style="font-weight:bold">-</span>
-        </button>
-       </div>
-      </div>
     </div>
   </div>
  </nav>
