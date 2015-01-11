@@ -49,20 +49,39 @@ var routes = {
         },
     graph:
         { regex: /^graph\/(.*)$/,
-          viewData: function (match) { return { benchName: match[1] }; },
+          viewData: function (match, options) {
+            var highlights = [];
+            options.forEach(function (opt) {
+                var m;
+                if (m = /hl=(.*)/.exec(opt)) {
+                    highlights.push(m[1]);
+                }
+            });
+            return {
+                benchName: match[1],
+                highlights: highlights,
+            };
+          },
           download: function () {
             return ['latest-summaries.json','graphs/' + viewData.benchName + '.json'];
           },
-          url: function (benchName) { return "graph/" + benchName; },
+          url: function (benchName, hls) {
+            var comps = [ "graph/" + benchName ];
+            $.merge(comps, hls.map(function (hl) { return "hl=" + hl }));
+            return comps.join(';');
+          },
         },
 };
 
 function parseRoute (path) {
+    var options = path.split(";");
+    var routePath = options.shift();
+
     $.each(routes, function (v,r) {
-        var match = r.regex.exec(path);
+        var match = r.regex.exec(routePath);
         if (match) {
             view = v;
-            if (r.viewData) viewData = r.viewData(match);
+            if (r.viewData) viewData = r.viewData(match, options);
             return false;
         } else {
             return true;
@@ -128,8 +147,12 @@ Handlebars.registerHelper('revisionLink', function(hash) {
   if (!hash) { return "#"; }
   return "#" + routes.revision.url(hash);
 });
-Handlebars.registerHelper('graphLink', function(benchName) {
-  return "#" + routes.graph.url(benchName);
+Handlebars.registerHelper('graphLink', function(benchName, hl) {
+    if (hl) {
+        return "#" + routes.graph.url(benchName,[hl]);
+    } else {
+        return "#" + routes.graph.url(benchName);
+    }
 });
 Handlebars.registerHelper('diffLink', function(rev1, rev2) {
   return data.settings.cgitLink + "/commitdiff/" + rev2
@@ -265,7 +288,7 @@ function setupChart () {
                 width: '300px',
 	}).appendTo("#main");
 
-    $.plot("#benchChart",
+    var plot = $.plot("#benchChart",
 	[{
 	  lines: { show: true, fill: true, fillColor: "rgba(255, 255, 255, 0.8)" },
 	  points: { show: true, fill: false },
@@ -296,6 +319,15 @@ function setupChart () {
 		}
 	  }
 	});
+
+    viewData.highlights.forEach(function (hash) {
+        commits.forEach(function (rev,i) {
+            if (rev.summary.hash == hash)  {
+                plot.highlight(0, i);
+            };
+        });
+    });
+
 
     $("#benchChart").bind("plothover", function (event, pos, item) {
 	if (item) {
