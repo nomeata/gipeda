@@ -311,6 +311,7 @@ function setupChart () {
 		tickFormatter: function (i,axis) {
 			if (i > 0 && i <= commits.length) {
 				var rev = commits[commits.length - i];
+                                if (!rev) return "";
                                 var date = new Date(rev.summary.gitDate * 1000);
                                 return $.timeago(date);
 			} else {
@@ -446,13 +447,16 @@ $(function (){
 // Redirection
 
 function goTo(path) {
-	hasher.setHash(path);
+    console.log("goTo " + path);
+    hasher.setHash(path);
 }
 
 
 // Main setup
 
 $(function() {
+    hasher.prependHash = '';
+
     $('#loading').hide();
 
     $(document).ajaxStart(function () {
