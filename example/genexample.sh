@@ -2,9 +2,9 @@
 
 set -e
 
-ln -sf ../.git repository
-ln -sf ../gipeda gipeda
-ln -sf ../src src
+test -e repository || ln -sf ../.git repository
+test -e gipeda || ln -sf ../gipeda gipeda
+test -e src || ln -sf ../src src
 
 ./genlogs.sh
 
@@ -15,3 +15,14 @@ cp ../site/index.html site/index.html
 cp ../site/js/gipeda.js site/js/gipeda.js
 
 ./gipeda
+
+cd site
+
+rm -rf .git
+git init 
+git remote add origin ../..
+git fetch 
+git branch master origin/gh-pages
+git add .
+git commit -m 'New gh-pages checkout'
+git push origin HEAD:gh-pages
