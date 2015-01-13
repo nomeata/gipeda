@@ -474,6 +474,7 @@ $(function() {
         data.latest = latest;
 
         getJSON("out/settings.json", function (settings) {
+	    $('title').html(data.settings.title + " – Gipeda");
             hasher.changed.add(handleHashChange);
             hasher.initialized.add(handleHashChange);
             hasher.init();
