@@ -22,8 +22,11 @@ no security problems.
 
 Do you want to see it live? Check out these:
 
- * Demo page, visualizing fairly boring stuff about gipedia itself.
- * GHC’s gipeda installation.
+ * [Demo page], visualizing fairly boring stuff about gipedia itself.
+ * [GHC’s gipeda installation].
+
+[Demo page]: http://nomeata.github.io/gipeda/
+[GHC’s gipeda installation]: https://perf.ghc.haskell.org/
 
 Setting it up
 -------------
