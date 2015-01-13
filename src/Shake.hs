@@ -31,7 +31,7 @@ gitRange :: Action String
 gitRange = do
     s <- liftIO $ S.readSettings "settings.yaml"
     let first = S.start s
-    [head] <- readFileLines "head.txt"
+    [head] <- readFileLines "site/out/head.txt"
     return $ first ++ ".." ++ head
 
 needIfThere :: [FilePath] -> Action [FilePath]
@@ -89,28 +89,28 @@ shakeMain = shakeArgs shakeOptions $ do
         need $ map summaryOf withLogs
     want ["summaries"]
 
-    "head.txt" *> \ out -> do
+    "site/out/head.txt" *> \ out -> do
         alwaysRerun
         Stdout stdout <- git "rev-parse" ["master"]
         writeFileChanged out stdout
      
 
-    "history.csv" *> \out -> do
+    "site/out/history.csv" *> \out -> do
         range <- gitRange
         Stdout stdout <- git "log" ["--format=%H;%P",range]
         writeFileChanged out stdout
-    want ["history.csv"]
+    want ["site/out/history.csv"]
 
     history' <- newCache $ \() -> do
-         orderOnly ["history.csv"]
-         liftIO $ ssvFileToMap "history.csv"
+         orderOnly ["site/out/history.csv"]
+         liftIO $ ssvFileToMap "site/out/history.csv"
     let history = history' ()
     let pred h = do { hist <- history; findPred hist h }
     let predOrSelf h = do { hist <- history; findPredOrSelf hist h }
     let recent n h = do { hist <- history; findRecent hist n h }
 
-    "latest.txt" *> \ out -> do
-        [head] <- readFileLines "head.txt"
+    "site/out/latest.txt" *> \ out -> do
+        [head] <- readFileLines "site/out/head.txt"
         latestM <- predOrSelf head
         case latestM of
            Just latest -> 
@@ -119,22 +119,22 @@ shakeMain = shakeArgs shakeOptions $ do
                 fail "Head has no parent with logs?"
 
     "graphs" ~> do
-        [latest] <- readFileLines "latest.txt"
+        [latest] <- readFileLines "site/out/latest.txt"
         need [resultsOf latest]
         b <- liftIO $ benchmarksInCSVFile (resultsOf latest)
         need (map graphFile b)
     want ["graphs"]
 
-    "results/*.csv" *> \out -> do
+    "site/out/results/*.csv" *> \out -> do
         let hash = takeBaseName out
         need [logsOf hash]
-        Stdout csv <- cmd "./log2csv.pl" (logsOf hash)
+        Stdout csv <- cmd "./log2csv" (logsOf hash)
         writeFile' out csv
 
-    "graphs//*.json" *> \out -> do
+    "site/out/graphs//*.json" *> \out -> do
         let bench = dropDirectory1 (dropExtension out)
 
-        [latest] <- readFileLines "latest.txt"
+        [latest] <- readFileLines "site/out/latest.txt"
         limitRecent <- getLimitRecent (LimitRecent ())
         r <- recent limitRecent latest
         need (map resultsOf r)
@@ -142,7 +142,7 @@ shakeMain = shakeArgs shakeOptions $ do
         Stdout json <- self "GraphReport" (bench : r)
         writeFile' out json
 
-    "reports/*.json" *> \out -> do
+    "site/out/reports/*.json" *> \out -> do
         let hash = takeBaseName out
         need [resultsOf hash]
 
@@ -152,24 +152,24 @@ shakeMain = shakeArgs shakeOptions $ do
         Stdout json <- self "RevReport" (hash : [h | Just h <- return pred])
         writeFile' out json
 
-    "summaries/*.json" *> \out -> do
+    "site/out/summaries/*.json" *> \out -> do
         let hash = takeBaseName out
         need [reportOf hash]
 
         Stdout json <- self "Summary" [hash]
         writeFile' out json
 
-    "latest-summaries.json" *> \out -> do
-        [latest] <- readFileLines "latest.txt"
+    "site/out/latest-summaries.json" *> \out -> do
+        [latest] <- readFileLines "site/out/latest.txt"
         r <- recent cGRAPH_HISTORY latest
         need (map summaryOf r)
 
         Stdout json <- self "IndexReport" r
         writeFile' out json
-    want ["latest-summaries.json"]
+    want ["site/out/latest-summaries.json"]
 
-    "benchNames.json" *> \out -> do
-        [latest] <- readFileLines "latest.txt"
+    "site/out/benchNames.json" *> \out -> do
+        [latest] <- readFileLines "site/out/latest.txt"
         need [resultsOf latest]
         b <- liftIO $ benchmarksInCSVFile (resultsOf latest)
 
@@ -177,11 +177,11 @@ shakeMain = shakeArgs shakeOptions $ do
 
         Stdout json <- self "BenchNames" (nub b)
         writeFile' out json
-    want ["benchNames.json"]
+    want ["site/out/benchNames.json"]
         
 
 
-    "all-summaries.json" *> \out -> do
+    "site/out/all-summaries.json" *> \out -> do
         range <- gitRange
         Stdout range <- git "log" ["--format=%H",range]
         let hashes = words range
@@ -190,19 +190,15 @@ shakeMain = shakeArgs shakeOptions $ do
 
         Stdout json <- self "IndexReport" withLogs
         writeFile' out json
-    want ["all-summaries.json"]
+    want ["site/out/all-summaries.json"]
 
-    "settings.json" *> \out -> do
+    "site/out/settings.json" *> \out -> do
         need ["settings.yaml"]
 
         Stdout json <- self "JsonSettings" []
         writeFile' out json
-    want ["settings.json"]
+    want ["site/out/settings.json"]
 
     phony "clean" $ do
-        removeFilesAfter "results" ["//*"]
-        removeFilesAfter "reports" ["//*"]
-        removeFilesAfter "graphs" ["//*"]
-        removeFilesAfter "." ["history.csv"]
-        removeFilesAfter "." ["head.txt"]
+        removeFilesAfter "site/out" ["//*"]
 

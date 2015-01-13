@@ -26,24 +26,24 @@ dataChanged = new signals.Signal()
 var routes = {
     index: 
         { regex: /^$/,
-          download: ['latest-summaries.json'],
+          download: ['out/latest-summaries.json'],
           url: function () {return ""},
         },
     complete:
         { regex: /^all$/,
-          download: ['all-summaries.json'],
+          download: ['out/all-summaries.json'],
           url: function () {return "all"},
         },
     graphIndex:
         { regex: /^graphs$/,
-          download: ['benchNames.json'],
+          download: ['out/benchNames.json'],
           url: function () {return "graphs"},
         },
     revision:
         { regex: /^revision\/([a-f0-9]+)$/,
           viewData: function (match) { return { hash: match[1] }; },
           download: function () {
-            return ['benchNames.json','reports/' + viewData.hash + '.json'];
+            return ['out/benchNames.json','out/reports/' + viewData.hash + '.json'];
           },
           url: function (hash) { return "revision/" + hash; },
         },
@@ -63,7 +63,7 @@ var routes = {
             };
           },
           download: function () {
-            return ['latest-summaries.json','graphs/' + viewData.benchName + '.json'];
+            return ['out/latest-summaries.json','out/graphs/' + viewData.benchName + '.json'];
           },
           url: function (benchName, hls) {
             var comps = [ "graph/" + benchName ];
@@ -469,10 +469,10 @@ $(function() {
     });
 
     // Load settins, then figure out what view to use.
-    $.get("latest.txt", function (latest) {
+    $.get("out/latest.txt", function (latest) {
         data.latest = latest;
 
-        getJSON("settings.json", function (settings) {
+        getJSON("out/settings.json", function (settings) {
             hasher.changed.add(handleHashChange);
             hasher.initialized.add(handleHashChange);
             hasher.init();
