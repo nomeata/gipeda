@@ -32,13 +32,13 @@ Setting it up
  * Install a Haskell compiler and these dependencies: TODO
  * Compile it: 
 
-       ghc -isrc -O --make src/gipeda.hs -o gipeda
+        ghc -isrc -O --make src/gipeda.hs -o gipeda
 
  * Create a `settings.yaml`. You can look at the example file.
  * Clone the repository of your project into `repository/`. A bare clone is
    sufficient, e.g.
 
-       git clone  --bare git://git.haskell.org/ghc.git repository
+        git clone  --bare git://git.haskell.org/ghc.git repository
 
 Gipeda does not work without at least some logs, so lets add them.
 
@@ -86,7 +86,7 @@ Bugs, Code, Contact
 -------------------
       
 Please reports bugs and missing features at the [GitHub bugtracker]. This is
-also where you can find [the source code].
+also where you can find the [source code].
 
 Gipeda was written by [Joachim Breitner] and is licensed under a permissive MIT
 [license].
