@@ -1,0 +1,58 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use File::Basename;
+use File::Slurp;
+use IPC::Run qw/run/;
+
+for my $filename (@ARGV) {
+	my $log = read_file($filename);
+
+	for (split /^/, $log) {
+		printf "tests/alloc/$1;$2\n"
+			while (m/^    Actual  +([a-zA-Z0-9_\.-]+)\([a-z]*\) bytes allocated: (\d+)\s*$/g);
+
+		printf "testsuite/tests;$1\n"
+			if (m/^ +(\d+) total tests, which gave rise to/);
+		printf "testsuite/expected passes;$1\n"
+			if (m/^ +(\d+) expected passes/);
+		printf "testsuite/framework failures;$1\n"
+			if (m/^ +(\d+) caused framework failures/);
+		printf "testsuite/unexpected passes;$1\n"
+			if (m/^ +(\d+) unexpected passes/);
+		printf "testsuite/expected failures;$1\n"
+			if (m/^ +(\d+) expected failures/);
+		printf "testsuite/unexpected stats;$1\n"
+			if (m/^ +(\d+) unexpected stat failures/);
+		printf "testsuite/unexpected failures;$1\n"
+			if (m/^ +(\d+) unexpected failures/);
+
+		printf "parser/shift/reduce;$1\n"
+			if (m!^shift/reduce conflicts:  (\d+)!);
+		printf "parser/reduce/reduce;$1\n"
+			if (m!^reduce/reduce conflicts: (\d+)!);
+	}
+
+	printf "buildtime/make;%d\n", $1 *60 + $2
+		if ($log =~ m/^Buildtime was:\n[\d\.]+user [\d\.]+system (\d+):(\d+\.\d+)elapsed/m);
+
+
+	my $out;
+	run (["nofib-analyse", "--csv=Allocs", $filename], \"", \$out);# or warn "nofib-analyse: $?";
+	for (split /^/, $out) {
+		printf "nofib/allocs/$1;$2\n"
+			if /(.*),(.*)/;
+	}
+	run (["nofib-analyse", "--csv=Runtime", $filename], \"", \$out);# or warn "nofib-analyse: $?";
+	for (split /^/, $out) {
+		printf "nofib/time/$1;$2\n"
+			if /(.*),(.*)/ and $2 > 0.3;
+	}
+	run (["nofib-analyse", "--csv=Size", $filename], \"", \$out);# or warn "nofib-analyse: $?";
+	for (split /^/, $out) {
+		printf "nofib/size/$1;$2\n"
+			if /(.*),(.*)/;
+	}
+}

@@ -9,7 +9,8 @@ site/js/Hasheor
 logs
 repository
 deploy.sh
-log2csv
+/log2csv
+/settings.yaml
 site/js/bootstrap/
 site/js/flot/
 site/js/handlebars-v2.0.0.js
