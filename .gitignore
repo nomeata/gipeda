@@ -1,6 +1,8 @@
 src/*.o
 src/*.hi
 gipeda
+example/site
+example/src
 site/out
 .shake.database
 site/js/Hasheor

@@ -1,0 +1,25 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use File::Basename;
+use File::Slurp;
+use IPC::Run qw/run/;
+
+for my $filename (@ARGV) {
+	my $log = read_file($filename);
+
+	for (split /^/, $log) {
+		printf "loc/haskell;$1\n"
+			if (m/^haskell\s+\d+\s+(\d+)/);
+		printf "loc/JavaScript;$1\n"
+			if (m/^javascript\s+\d+\s+(\d+)/);
+		printf "loc/HTML;$1\n"
+			if (m/^html\s+\d+\s+(\d+)/);
+		printf "loc/CSS;$1\n"
+			if (m/^css\s+\d+\s+(\d+)/);
+		printf "comment-rate;$1\n"
+			if (m/^Total\s+\d+\s+\d+\s+\d+\s+([\d\.]+)%/);
+	}
+}
