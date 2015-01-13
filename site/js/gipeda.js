@@ -295,6 +295,7 @@ function setupChart () {
 	  label: benchName,
 	  data: commits.map(function (x,i){
 	    if (!x.benchResults) return;
+	    if (!x.benchResults[benchName]) return;
 	    return [commits.length - i, x.benchResults[benchName].value]
 	  }),
 	}],
