@@ -132,7 +132,7 @@ shakeMain = shakeArgs shakeOptions $ do
         writeFile' out csv
 
     "site/out/graphs//*.json" *> \out -> do
-        let bench = dropDirectory1 (dropExtension out)
+        let bench = dropDirectory1 (dropDirectory1 (dropDirectory1 (dropExtension out)))
 
         [latest] <- readFileLines "site/out/latest.txt"
         limitRecent <- getLimitRecent (LimitRecent ())
