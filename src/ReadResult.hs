@@ -34,12 +34,14 @@ instance FromField BenchValue where
     parseField s = (I <$> parseField s) <|> (F <$> parseField s)
 
 readCSV :: Hash -> IO ResultMap
-readCSV hash = do 
-    ex <- doesFileExist (resultsOf hash)
-    if not ex then return M.empty else do
-    str <- BS.readFile (resultsOf hash)
-    let rows = either error id $ decodeWith ssv NoHeader str
-    return $ M.fromList $ V.toList $ rows
+readCSV hash = do
+  ex <- doesFileExist (resultsOf hash)
+  if not ex
+     then return M.empty
+     else do
+            str <- BS.readFile (resultsOf hash)
+            let rows = either error id $ decodeWith ssv NoHeader str
+            return $ M.fromList $ V.toList $ rows
 
 ssv :: DecodeOptions
 ssv = defaultDecodeOptions {
