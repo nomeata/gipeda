@@ -24,7 +24,7 @@ git gitcmd args = do
 
 self :: (CmdResult b) => String -> [String] -> Action b
 self name args = do
-    orderOnly ["gipeda"]
+    -- orderOnly ["gipeda"]
     cmd (Traced name) "./gipeda" name args
 
 gitRange :: Action String
@@ -63,11 +63,13 @@ newtype LimitRecent = LimitRecent ()
 shakeMain :: IO ()
 shakeMain = shakeArgs shakeOptions $ do
 
+{-
     "gipeda" *> \out ->  do
         sources <- getDirectoryFiles "src" ["*.hs"]
         need (map ("src" </>) sources)
         cmd "ghc -isrc --make -O src/gipeda.hs -o" out
     want ["gipeda"]
+-}
 
     getLimitRecent <- addOracle $ \(LimitRecent _) -> do
         need ["settings.yaml"]
