@@ -208,7 +208,8 @@ function getJSON(url, callback, options) {
 	        dataChanged.dispatch();
 	        if (callback) callback();
             },
-            dataType: 'json'
+	    cache: false,
+            dataType: 'json',
         });
     }
 }
