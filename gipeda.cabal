@@ -1,5 +1,5 @@
 name:                gipeda
-version:             0.1.0.0
+version:             0.1
 synopsis:            Git Performance Dashboard
 homepage:            https://github.com/nomeata/gipeda
 license:             MIT
@@ -7,7 +7,11 @@ license-file:        LICENSE
 author:              Joachim Breitner
 maintainer:          mail@joachim-breitner.de
 build-type:          Simple
-extra-source-files:  README.md
+extra-source-files:
+  README.md,
+  site/index.html,
+  site/js/gipeda.js,
+  install-jslibs.sh
 cabal-version:       >=1.10
 
 executable gipeda
