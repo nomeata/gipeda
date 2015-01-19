@@ -1,6 +1,28 @@
 name:                gipeda
 version:             0.1
+category:            Development
 synopsis:            Git Performance Dashboard
+description:
+ Gitpeda is a a tool that presents data from your program’s benchmark suite
+ (or any other source), with nice tables and shiny graphs.
+ .
+ So it is up to you whether you have a polling shell script loop, a post-commit
+ hook or a elaborate jenkins setup. As long as the performance data ends up in
+ the `logs/` directory, gipeda is happy.
+ .
+ Gipeda produces static pages. In fact, the (single) html file and the
+ accompagning JavaScript code is completely static. Giepda just generates a
+ large number of json files. This has the advantage of easy deployment: Just put
+ gipeda in your webspace of copy the files to some static web hosting and you
+ are done. This putts very little load on your server, is cache friendly and has
+ no security problems.
+ .
+ Do you want to see it live? Check out these:
+ .
+   * Demo page, visualizing fairly boring stuff about gipedia itself:
+     http://nomeata.github.io/gipeda/
+   * GHC’s gipeda installation:
+     https://perf.ghc.haskell.org/
 homepage:            https://github.com/nomeata/gipeda
 license:             MIT
 license-file:        LICENSE
@@ -44,3 +66,7 @@ executable gipeda
   hs-source-dirs: src
 
   default-language: Haskell2010
+
+source-repository head
+  type:     git
+  location: https://github.com/nomeat/gipeda

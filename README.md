@@ -10,7 +10,7 @@ any other source), with nice tables and shiny graphs.
 
 It is only a frontend and does not help with or care about collecting the data.
 So it is up to you whether you have a polling shell script loop, a post-commit
-cook or a elaborate jenkins setup. As long as the performance data ends up in
+hook or a elaborate jenkins setup. As long as the performance data ends up in
 the `logs/` directory, gipeda is happy.
 
 Gipeda produces static pages. In fact, the (single) html file and the
