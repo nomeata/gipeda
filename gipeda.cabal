@@ -1,5 +1,5 @@
 name:                gipeda
-version:             0.1
+version:             0.1.0.1
 category:            Development
 synopsis:            Git Performance Dashboard
 description:
@@ -20,9 +20,10 @@ description:
  Do you want to see it live? Check out these:
  .
    * Demo page, visualizing fairly boring stuff about gipedia itself:
-     http://nomeata.github.io/gipeda/
+     <http://nomeata.github.io/gipeda/>
+ .
    * GHC’s gipeda installation:
-     https://perf.ghc.haskell.org/
+     <https://perf.ghc.haskell.org/>
 homepage:            https://github.com/nomeata/gipeda
 license:             MIT
 license-file:        LICENSE
