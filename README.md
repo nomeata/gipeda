@@ -79,7 +79,9 @@ and it will create a bunch of JSON files in `site/out/`.  With `./gipda -j4`
 you can parallize it.
 
 You should do this everytime a new log file appears in `logs/`. You should also
-make sure your repository is up-to-date, e.g. by runing `git -C repository pull`.
+make sure your repository is up-to-date, e.g. by running `git -C repository
+pull` or, if it is a bare clone, `git -C repository fetch origin
+"+refs/heads/*:refs/heads/*" --prune`.
 
 Using gipedia
 -------------
