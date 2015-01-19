@@ -57,14 +57,6 @@ executable gipeda
     Summary,
     WithLatestLogs
 
-  other-extensions:
-      DeriveGeneric,
-      OverloadedStrings,
-      RecordWildCards,
-      ViewPatterns,
-      DeriveDataTypeable,
-      GeneralizedNewtypeDeriving
-
   build-depends:
       base                 >= 4.5  && <4.9,
       bytestring           >= 0.10 && <0.11,
