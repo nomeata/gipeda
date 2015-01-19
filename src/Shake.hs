@@ -1,6 +1,8 @@
 {-# LANGUAGE DeriveDataTypeable, GeneralizedNewtypeDeriving   #-}
 module Shake where
 
+import Prelude hiding ((*>))
+
 import Development.Shake
 import Development.Shake.FilePath
 import Development.Shake.Classes
