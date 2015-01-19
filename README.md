@@ -32,16 +32,21 @@ Setting it up
 -------------
 
  * Clone gipedia somewhere, possibly directly into your webspace.
- * Install a Haskell compiler and these dependencies: TODO
- * Compile it: 
+ * Install a Haskell compiler, including the `cablal` tool.
+ * Install the dependencies:
 
-        ghc -isrc -O --make src/gipeda.hs -o gipeda
+        cabal install --dependencies-only
+
+ * Compile it:
+
+        cabal install --bindir=.
 
  * Create a `settings.yaml`. You can look at the example file.
  * Clone the repository of your project into `repository/`. A bare clone is
    sufficient, e.g.
 
         git clone  --bare git://git.haskell.org/ghc.git repository
+
  * Download a bunch of JavaScript libraries by runing `./install-jslibs.sh`.	
 
 Gipeda does not work without at least some logs, so lets add them.
@@ -54,7 +59,7 @@ Gipeda expect simple CSV files for each revision, of the form
     benchmark1;1000
     benchmark2;20.123
     benchmark3;0
- 
+
 But likely your benchmark suite does not generate them in this format directly.
 Hence, put whatever format you have (text base logs, JUnit reports, whatever)
 into the directory `logs`, named `<gitrev>.log`, e.g.
@@ -71,7 +76,7 @@ With everything in place, you can now run
     ./gipeda
 
 and it will create a bunch of JSON files in `site/out/`.  With `./gipda -j4`
-you can parallize it. 
+you can parallize it.
 
 You should do this everytime a new log file appears in `logs/`. You should also
 make sure your repository is up-to-date, e.g. by runing `git -C repository pull`.
@@ -88,7 +93,7 @@ To host this on a webserver, just put the `site/` directory in your webspace.
 
 Bugs, Code, Contact
 -------------------
-      
+
 Please reports bugs and missing features at the [GitHub bugtracker]. This is
 also where you can find the [source code].
 
@@ -98,4 +103,4 @@ Gipeda was written by [Joachim Breitner] and is licensed under a permissive MIT
 [GitHub bugtracker]: https://github.com/nomeata/gipeda/issues
 [source code]: https://github.com/nomeata/gipeda
 [Joachim Breitner]: http://www.joachim-breitner.de/
-[license]: https://github.com/nomeata/gipeda/blog/LICENSE
+[license]: https://github.com/nomeata/gipeda/blob/LICENSE
