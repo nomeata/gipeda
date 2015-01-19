@@ -40,6 +40,23 @@ executable gipeda
   main-is:
       gipeda.hs
 
+  other-modules:
+    BenchmarkSettings,
+    BenchmarksInCSV,
+    BenchNames,
+    GraphReport,
+    IndexReport,
+    JsonSettings,
+    JsonUtils,
+    ParentMap,
+    Paths,
+    ReadResult,
+    ReportTypes,
+    RevReport,
+    Shake,
+    Summary,
+    WithLatestLogs
+
   other-extensions:
       DeriveGeneric,
       OverloadedStrings,
