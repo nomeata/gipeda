@@ -11,9 +11,12 @@ import GHC.Generics
 import Paths
 import ReadResult
 import ReportTypes
+import qualified BenchmarkSettings as S
 
 graphReportMain :: [String] -> IO ()
 graphReportMain (bench:revs) = do
+    settings <- S.readSettings "settings.yaml"
+
     g <- forM revs $ \rev -> do
         m <- readCSV rev
         let v = M.lookup bench m
@@ -23,7 +26,11 @@ graphReportMain (bench:revs) = do
                     [ "value" .= v ]
                 ]
             ]
-    let doc = object ["revisions" .= object g]
+    let doc = object
+                [ "revisions" .= object g
+                , "benchmarkSettings" .= object
+                    [ T.pack bench .= toJSON (S.benchSettings settings bench) ]
+                ]
 
     BS.putStr (encode doc)
     

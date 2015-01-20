@@ -289,8 +289,7 @@ function setupChart () {
                 width: '300px',
 	}).appendTo("#main");
 
-    var plot = $.plot("#benchChart",
-	[{
+    var plot_series = {
 	  lines: { show: true, fill: true, fillColor: "rgba(255, 255, 255, 0.8)" },
 	  points: { show: true, fill: false },
 	  label: benchName,
@@ -299,8 +298,9 @@ function setupChart () {
 	    if (!x.benchResults[benchName]) return;
 	    return [commits.length - i, x.benchResults[benchName].value]
 	  }),
-	}],
-	{	
+	};
+
+    var plot_options = {
 	  legend: {
 		position: 'nw',
 	  },
@@ -308,6 +308,7 @@ function setupChart () {
 		hoverable: true,
 		clickable: true,
 	  },
+          yaxis: {},
 	  xaxis: {
 		// ticks: values.map(function (x,i){return [i,x[0]]}),
 		tickFormatter: function (i,axis) {
@@ -321,7 +322,18 @@ function setupChart () {
 			}
 		}
 	  }
-	});
+	};
+
+    var numberType;
+    if (data.benchmarkSettings && data.benchmarkSettings[benchName]) {
+        numberType = data.benchmarkSettings[benchName].numberType;
+    }
+    if (numberType == "integral" || numberType == "small integral") {
+        plot_options.yaxis.minTickSize = 1;
+        plot_options.yaxis.tickDecimals = 0;
+    }
+
+    var plot = $.plot("#benchChart", [plot_series], plot_options);
 
     viewData.highlights.forEach(function (hash) {
         commits.forEach(function (rev,i) {

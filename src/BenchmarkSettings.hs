@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, DeriveGeneric #-}
 module BenchmarkSettings where
 
 import Data.Yaml
@@ -9,10 +9,16 @@ import Control.Applicative
 import Control.Monad
 import Data.Monoid
 import Data.Maybe
+import GHC.Generics (Generic)
 
 
 data NumberType = IntegralNT | SmallIntegralNT | FloatingNT
-    deriving Show
+    deriving (Show)
+
+instance ToJSON NumberType where
+    toJSON IntegralNT =      String "integral"
+    toJSON SmallIntegralNT = String "small integral"
+    toJSON FloatingNT =      String "floating"
 
 type BenchName = String
 data BenchSettings = BenchSettings
@@ -22,7 +28,8 @@ data BenchSettings = BenchSettings
     , group :: String
     , threshold :: Double
     }
-    deriving Show
+    deriving (Show, Generic)
+instance ToJSON BenchSettings
 
 defaultBenchSettings :: BenchSettings
 defaultBenchSettings = BenchSettings True "" IntegralNT "" 3
