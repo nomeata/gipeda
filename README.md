@@ -4,7 +4,7 @@ Gipeda -- the Git Performance Dashboard
 What is gipeda?
 ---------------
 
-Gitpeda is a a tool that presents data from your program’s benchmark suite (or
+Gitpeda is a a tool that presents data from your program's benchmark suite (or
 any other source), with nice tables and shiny graphs.
 
 
@@ -23,10 +23,10 @@ no security problems.
 Do you want to see it live? Check out these:
 
  * [Demo page], visualizing fairly boring stuff about gipedia itself.
- * [GHC’s gipeda installation].
+ * [GHC's gipeda installation].
 
 [Demo page]: http://nomeata.github.io/gipeda/
-[GHC’s gipeda installation]: https://perf.ghc.haskell.org/
+[GHC's gipeda installation]: https://perf.ghc.haskell.org/
 
 Setting it up
 -------------
@@ -87,7 +87,7 @@ Using gipedia
 -------------
 
 Finally, you simply point your browser to the `site/index.html`. The page
-should be mostly self-explanatory. If you don’t see anything, it might be
+should be mostly self-explanatory. If you don't see anything, it might be
 because of the filter in the top-right corner. Try to enable all buttons, even
 the `=`.
 
