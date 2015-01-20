@@ -3,7 +3,7 @@ version:             0.1.0.1
 category:            Development
 synopsis:            Git Performance Dashboard
 description:
- Gitpeda is a a tool that presents data from your program’s benchmark suite
+ Gitpeda is a a tool that presents data from your program's benchmark suite
  (or any other source), with nice tables and shiny graphs.
  .
  So it is up to you whether you have a polling shell script loop, a post-commit
@@ -22,7 +22,7 @@ description:
    * Demo page, visualizing fairly boring stuff about gipedia itself:
      <http://nomeata.github.io/gipeda/>
  .
-   * GHC’s gipeda installation:
+   * GHC's gipeda installation:
      <https://perf.ghc.haskell.org/>
 homepage:            https://github.com/nomeata/gipeda
 license:             MIT
