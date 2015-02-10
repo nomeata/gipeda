@@ -23,7 +23,7 @@ description:
      <http://nomeata.github.io/gipeda/>
  .
    * GHC’s gipeda installation:
-     <https://perf.ghc.haskell.org/>
+     <https://perf.haskell.org/>
 homepage:            https://github.com/nomeata/gipeda
 license:             MIT
 license-file:        LICENSE
