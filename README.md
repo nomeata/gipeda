@@ -35,7 +35,7 @@ Setting it up
  * Install a Haskell compiler, including the `cablal` tool.
  * Install the dependencies:
 
-        cabal install --dependencies-only
+        cabal install --only-dependencies
 
  * Compile it:
 
