@@ -24,7 +24,7 @@ main = do
 
     ex <- doesFileExist "settings.yaml"
     unless ex $ do
-        hPutStr stderr "Please run this from the same directory as the settings.yaml file."
+        hPutStr stderr "Please run this from the same directory as the settings.yaml file.\n"
 
 
     case args of 
