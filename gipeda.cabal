@@ -79,4 +79,4 @@ executable gipeda
 
 source-repository head
   type:     git
-  location: https://github.com/nomeat/gipeda
+  location: https://github.com/nomeata/gipeda
