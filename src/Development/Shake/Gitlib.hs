@@ -30,8 +30,8 @@ instance Binary T.Text where
     put = put . T.encodeUtf8
     get = T.decodeUtf8 <$> get
 
--- Should be Type, but we need a Binary instance, so encode as a bytestring for
--- now.
+
+
 newtype GetGitReferenceQ = GetGitReferenceQ (RepoPath, RefName)
     deriving (Typeable,Eq,Hashable,Binary,NFData,Show)
 
