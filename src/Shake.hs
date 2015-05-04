@@ -10,6 +10,10 @@ import Control.Monad
 import qualified Data.Map as M
 import Data.Functor
 import Data.List
+import System.IO.Extra (newTempFile)
+import qualified Data.ByteString as BS
+
+import Development.Shake.Gitlib
 
 import Paths hiding (Hash)
 import ParentMap
@@ -42,9 +46,12 @@ needIfThere files = do
     need existing
     return existing
 
+doesLogExist :: Hash -> Action Bool
+doesLogExist hash = doesGitFileExist "logs" (hash <.> "log")
+
 findPred, findPredOrSelf :: ParentMap -> Hash -> Action (Maybe Hash)
 findPredOrSelf m h = do
-    ex <- doesFileExist (logsOf h)
+    ex <- doesLogExist h
     if ex then return (Just h)
           else findPred m h
 findPred m h = case M.lookup h m of 
@@ -64,6 +71,7 @@ newtype LimitRecent = LimitRecent ()
 
 shakeMain :: IO ()
 shakeMain = shakeArgs shakeOptions $ do
+    defaultRuleGitLib
 
 {-
     "gipeda" *> \out ->  do
@@ -81,7 +89,7 @@ shakeMain = shakeArgs shakeOptions $ do
         range <- gitRange
         Stdout range <- git "log" ["--format=%H",range]
         let hashes = words range
-        withLogs <- filterM (doesFileExist . logsOf) hashes
+        withLogs <- filterM doesLogExist hashes
         need $ map reportOf withLogs
     want ["reports"]
 
@@ -89,7 +97,7 @@ shakeMain = shakeArgs shakeOptions $ do
         range <- gitRange
         Stdout range <- git "log" ["--format=%H",range]
         let hashes = words range
-        withLogs <- filterM (doesFileExist . logsOf) hashes
+        withLogs <- filterM doesLogExist hashes
         need $ map summaryOf withLogs
     want ["summaries"]
 
@@ -131,9 +139,11 @@ shakeMain = shakeArgs shakeOptions $ do
 
     "site/out/results/*.csv" *> \out -> do
         let hash = takeBaseName out
-        need [logsOf hash]
-        Stdout csv <- cmd "./log2csv" (logsOf hash)
-        writeFile' out csv
+        withTempFile $ \fn -> do
+            log <- readGitFile "logs" (hash <.> "log")
+            liftIO $ BS.writeFile fn log
+            Stdout csv <- cmd "./log2csv" fn
+            writeFile' out csv
 
     "site/out/graphs//*.json" *> \out -> do
         let bench = dropDirectory1 (dropDirectory1 (dropDirectory1 (dropExtension out)))
@@ -182,14 +192,13 @@ shakeMain = shakeArgs shakeOptions $ do
         Stdout json <- self "BenchNames" (nub b)
         writeFile' out json
     want ["site/out/benchNames.json"]
-        
 
 
     "site/out/all-summaries.json" *> \out -> do
         range <- gitRange
         Stdout range <- git "log" ["--format=%H",range]
         let hashes = words range
-        withLogs <- filterM (doesFileExist . logsOf) hashes
+        withLogs <- filterM doesLogExist hashes
         need (map summaryOf withLogs)
 
         Stdout json <- self "IndexReport" withLogs
@@ -206,3 +215,12 @@ shakeMain = shakeArgs shakeOptions $ do
     phony "clean" $ do
         removeFilesAfter "site/out" ["//*"]
 
+
+-- | Create a temporary file in the temporary directory. The file will be deleted
+--   after the action completes (provided the file is not still open).
+--   The 'FilePath' will not have any file extension, will exist, and will be zero bytes long.
+--   If you require a file with a specific name, use 'withTempDir'.
+withTempFile :: (FilePath -> Action a) -> Action a
+withTempFile act = do
+    (file, del) <- liftIO newTempFile
+    act file `actionFinally` del
