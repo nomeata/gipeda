@@ -3,7 +3,7 @@ module Shake where
 
 import Prelude hiding ((*>))
 
-import Development.Shake
+import Development.Shake hiding (withTempFile)
 import Development.Shake.FilePath
 import Development.Shake.Classes
 import Control.Monad
