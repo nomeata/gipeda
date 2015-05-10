@@ -38,15 +38,16 @@ newtype GetGitReferenceQ = GetGitReferenceQ (RepoPath, RefName)
 newtype GitSHA = GitSHA T.Text
     deriving (Typeable,Eq,Hashable,Binary,NFData,Show)
 
-newtype GetGitFileRefQ = GetGitFileRefQ (RepoPath, T.Text, FilePath)
+newtype GetGitFileRefQ = GetGitFileRefQ (RepoPath, RefName, FilePath)
     deriving (Typeable,Eq,Hashable,Binary,NFData,Show)
 
 instance Rule GetGitReferenceQ GitSHA where
-    storedValue _ (GetGitReferenceQ (repoPath, name)) =
+    storedValue _ (GetGitReferenceQ (repoPath, name)) = do
         Just . GitSHA <$> getGitReference' repoPath name
 
 instance Rule GetGitFileRefQ (Maybe T.Text) where
-    storedValue _ (GetGitFileRefQ (repoPath, ref', filename)) =
+    storedValue _ (GetGitFileRefQ (repoPath, name, filename)) = do
+        ref' <- getGitReference' repoPath name
         Just <$> getGitFileRef' repoPath ref' filename
 
 getGitContents :: RepoPath -> Action [FilePath]
@@ -78,14 +79,12 @@ getGitFileRef' repoPath ref' fn = do
 
 doesGitFileExist :: RepoPath -> FilePath -> Action Bool
 doesGitFileExist repoPath fn = do
-    GitSHA ref' <- apply1 $ GetGitReferenceQ (repoPath, "HEAD")
-    res <- apply1 $ GetGitFileRefQ (repoPath, ref', fn)
+    res <- apply1 $ GetGitFileRefQ (repoPath, "HEAD", fn)
     return $ isJust (res :: Maybe T.Text)
 
 readGitFile :: FilePath -> FilePath -> Action BS.ByteString
 readGitFile repoPath fn = do
-    GitSHA ref' <- apply1 $ GetGitReferenceQ (repoPath, "HEAD")
-    res <- apply1 $ GetGitFileRefQ (repoPath, ref', fn)
+    res <- apply1 $ GetGitFileRefQ (repoPath, "HEAD", fn)
     case res of
         Nothing -> fail "readGitFile: File does not exist"
         Just ref' -> liftIO $ withRepository lgFactory repoPath $ do
@@ -96,6 +95,7 @@ defaultRuleGitLib :: Rules ()
 defaultRuleGitLib = do
     rule $ \(GetGitReferenceQ (repoPath, refName)) -> Just $ liftIO $
         GitSHA <$> getGitReference' repoPath refName
-    rule $ \(GetGitFileRefQ (repoPath, ref', fn)) -> Just $ liftIO $
-        getGitFileRef' repoPath ref' fn
+    rule $ \(GetGitFileRefQ (repoPath, refName, fn)) -> Just $ do
+        GitSHA ref' <- apply1 $ GetGitReferenceQ (repoPath, "HEAD")
+        liftIO $ getGitFileRef' repoPath ref' fn
 
