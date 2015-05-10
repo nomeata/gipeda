@@ -7,6 +7,8 @@ import qualified Data.ByteString.Lazy as BS
 import qualified Data.Text as T
 import Data.Aeson
 import GHC.Generics
+import Data.Maybe
+import Data.Functor
 
 import Paths
 import ReadResult
@@ -19,15 +21,16 @@ graphReportMain (bench:revs) = do
 
     g <- forM revs $ \rev -> do
         m <- readCSV rev
-        let v = M.lookup bench m
-        return $ T.pack rev .= object
-            [ "benchResults" .= object
-                [ T.pack bench .= object
-                    [ "value" .= v ]
-                ]
-            ]
+        case M.lookup bench m of
+            Nothing -> return Nothing
+            Just v -> return $ Just $ T.pack rev .= object
+                        [ "benchResults" .= object
+                            [ T.pack bench .= object
+                                [ "value" .= v ]
+                            ]
+                        ]
     let doc = object
-                [ "revisions" .= object g
+                [ "revisions" .= object (catMaybes g)
                 , "benchmarkSettings" .= object
                     [ T.pack bench .= toJSON (S.benchSettings settings bench) ]
                 ]
