@@ -14,6 +14,8 @@ benchmarks:
     unit: tests
     type: small integral
     group: Testsuite
+    important: False
+
   - match: testsuite/tests
     smallerIsBetter: False
     type: integral

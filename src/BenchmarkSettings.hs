@@ -27,12 +27,13 @@ data BenchSettings = BenchSettings
     , numberType :: NumberType
     , group :: String
     , threshold :: Double
+    , important :: Bool
     }
     deriving (Show, Generic)
 instance ToJSON BenchSettings
 
 defaultBenchSettings :: BenchSettings
-defaultBenchSettings = BenchSettings True "" IntegralNT "" 3
+defaultBenchSettings = BenchSettings True "" IntegralNT "" 3 True
 
 newtype S = S { unS :: BenchName -> BenchSettings }
 newtype SM = SM (BenchName -> (BenchSettings -> BenchSettings))
@@ -62,13 +63,15 @@ instance FromJSON SM where
         mg <- o .:? "group"
         ms <- o .:? "smallerIsBetter"
         mth <- o .:? "threshold"
-        return $ SM $ \n b -> 
+        mi <- o .:? "important"
+        return $ SM $ \n b ->
             if n `matches` m then
                b { numberType      = fromMaybe (numberType b) mt
                  , unit            = fromMaybe (unit b) mu
                  , group           = fromMaybe (group b) mg
                  , smallerIsBetter = fromMaybe (smallerIsBetter b) ms
                  , threshold       = fromMaybe (threshold b) mth
+                 , important       = fromMaybe (important b) mi
                  }
             else b
     parseJSON _ = mzero

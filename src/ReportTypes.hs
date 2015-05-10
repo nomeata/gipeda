@@ -4,6 +4,7 @@ module ReportTypes where
 
 import qualified Data.Map as M
 import Data.Aeson
+import Data.Aeson.Types
 import GHC.Generics
 import Text.Printf
 import Data.List
@@ -97,9 +98,11 @@ data BenchResult = BenchResult
     , change :: String
     , changeType :: ChangeType
     , unit :: String
+    , important :: Bool
     }
  deriving (Generic)
-instance ToJSON BenchResult
+instance ToJSON BenchResult where
+    toJSON = genericToJSON defaultOptions
 instance FromJSON BenchResult
 
 invertChangeType :: ChangeType -> ChangeType
@@ -157,6 +160,7 @@ toResult s name value prev = BenchResult
     , change = change
     , changeType = changeType
     , unit = S.unit s
+    , important = S.important s
     }
   where 
     (change, changeType') =
@@ -169,8 +173,14 @@ toResult s name value prev = BenchResult
 toSummaryStats :: [BenchResult] -> SummaryStats
 toSummaryStats res = SummaryStats
     { totalCount = length res
-    , improvementCount = length [ () | BenchResult { changeType = Improvement } <- res ]
-    , regressionCount =  length [ () | BenchResult { changeType = Regression } <- res ]
+    , improvementCount = length
+        [ ()
+        | BenchResult { changeType = Improvement, important = True } <- res
+        ]
+    , regressionCount =  length
+        [ ()
+        | BenchResult { changeType = Regression, important = True } <- res
+        ]
     }
 
 
