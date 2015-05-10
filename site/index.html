@@ -148,17 +148,19 @@ html {
 </script>
 
 <script id="summary-icons"  type="text/x-handlebars-template">
-  <span  title="number of benchmarks">
+  <span title="{{summaryDesc}}">
+  <span>
    {{totalCount}}
    <span class="glyphicon glyphicon-stats"></span>
   </span>
-  <span title="number of improvements">
+  <span>
    {{improvementCount}}
    <span class="glyphicon glyphicon-plus text-success"></span>
   </span>
-  <span title="number of regressions">
+  <span>
    {{regressionCount}}
    <span class="glyphicon glyphicon-minus text-warning"></span>
+  </span>
   </span>
 </script>
 

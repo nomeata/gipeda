@@ -47,15 +47,18 @@ data SummaryStats = SummaryStats
     { totalCount :: Int
     , improvementCount :: Int
     , regressionCount :: Int
+    , summaryDesc :: String
     }
  deriving (Show, Generic)
 instance ToJSON SummaryStats
 instance FromJSON SummaryStats
 
+{-
 sumStats :: [SummaryStats] -> SummaryStats
 sumStats = foldl' go (SummaryStats 0 0 0)
   where go (SummaryStats a b c) (SummaryStats a' b' c') =
             SummaryStats (a + a') (b + b') (c + c')
+-}
 
 data Summary = Summary
     { hash :: Hash
@@ -79,7 +82,7 @@ instance ToJSON RevReport
 instance FromJSON RevReport
 
 data ChangeType = Improvement | Boring | Regression
- deriving (Generic)
+ deriving (Eq, Generic)
 instance ToJSON ChangeType
 instance FromJSON ChangeType
 
@@ -181,8 +184,17 @@ toSummaryStats res = SummaryStats
         [ ()
         | BenchResult { changeType = Regression, important = True } <- res
         ]
+    , summaryDesc = andMore 5
+        [ name r ++ ": " ++ change r
+        | r <- res, important r, changeType r `elem` [Improvement, Regression]
+        ]
     }
 
+andMore :: Int -> [String] -> String
+andMore _ [] = "–"
+andMore n xs = intercalate "\n" (take n xs) ++ rest
+  where rest | length xs > n = "\nand " ++ show (length xs - n) ++ " more"
+             | otherwise     = ""
 
 {-
 toGroup :: String -> [BenchResult] -> BenchGroup
