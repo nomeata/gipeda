@@ -85,7 +85,7 @@ instance FromJSON S where
 data Settings = Settings
    { title :: String
    , cgitLink :: String
-   , logLink :: String
+   , logLink :: Maybe String
    , limitRecent :: Integer
    , start :: String
    , benchSettings :: BenchName -> BenchSettings
@@ -95,7 +95,7 @@ instance FromJSON Settings where
     parseJSON (Object v) =
         Settings <$> v .: "title"
                  <*> v .: "cgitLink"
-                 <*> v .: "logLink"
+                 <*> v .:? "logLink"
                  <*> v .: "limitRecent"
                  <*> v .: "start"
                  <*> (unS <$> v.: "benchmarks")

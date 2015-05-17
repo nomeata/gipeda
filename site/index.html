@@ -288,7 +288,9 @@ html {
       <a href="{{revisionLink this}}"><code>{{shortRev this}}</code></a> – 
       <a href="{{diffLink this ../rev.summary.hash}}">View diff</a>
     {{/with}} –
-      <a href="{{logLink rev.summary.hash}}">View buildlog</a> –
+    {{#logLink rev.summary.hash }}
+      <a href="{{link}}">View buildlog</a> –
+    {{/logLink}}
       {{> summary-icons rev.summary.stats }}
     {{else}}
     No parent commit found.
@@ -359,6 +361,9 @@ html {
  <h2>{{benchName}}</h2>
 
  <div id="benchChart" style="width:100%; height:400px">
+ </div>
+
+ <p><button id="loadMore">Load older revisions</button></p>
  </div>
 </script>
 
