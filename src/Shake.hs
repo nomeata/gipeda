@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, GeneralizedNewtypeDeriving   #-}
+{-# LANGUAGE DeriveDataTypeable, GeneralizedNewtypeDeriving, NondecreasingIndentation #-}
 module Shake where
 
 import Prelude hiding ((*>))
@@ -12,6 +12,7 @@ import Data.Functor
 import Data.List
 import System.IO.Extra (newTempFile)
 import qualified Data.ByteString as BS
+import qualified System.Directory
 
 import Development.Shake.Gitlib
 
@@ -46,31 +47,50 @@ needIfThere files = do
     need existing
     return existing
 
-doesLogExist :: Hash -> Action Bool
-doesLogExist hash = doesGitFileExist "logs" (hash <.> "log")
+doesLogExist :: LogSource -> Hash -> Action Bool
+doesLogExist BareGit    hash = doesGitFileExist "logs" (hash <.> "log")
+doesLogExist FileSystem hash = doesFileExist (logsOf hash)
+doesLogExist NoLogs     hash = doesFileExist (resultsOf hash)
 
-findPred, findPredOrSelf :: ParentMap -> Hash -> Action (Maybe Hash)
-findPredOrSelf m h = do
-    ex <- doesLogExist h
+findPred, findPredOrSelf :: LogSource -> ParentMap -> Hash -> Action (Maybe Hash)
+findPredOrSelf logSource m h = do
+    ex <- doesLogExist logSource h
     if ex then return (Just h)
-          else findPred m h
-findPred m h = case M.lookup h m of 
-    Just h' -> findPredOrSelf m h'
+          else findPred logSource m h
+findPred logSource m h = case M.lookup h m of
+    Just h' -> findPredOrSelf logSource m h'
     Nothing -> return Nothing
 
-findRecent :: ParentMap -> Integer -> FilePath -> Action [FilePath]
-findRecent _ 0 _ = return []
-findRecent m n h = do
-    pM <- findPred m h
+findRecent :: LogSource -> ParentMap -> Integer -> FilePath -> Action [FilePath]
+findRecent _ _ 0 _ = return []
+findRecent logSource m n h = do
+    pM <- findPred logSource m h
     (h:) <$> case pM of
         Nothing -> return []
-        Just p ->  findRecent m (n-1) p
+        Just p ->  findRecent logSource m (n-1) p
 
 newtype LimitRecent = LimitRecent ()
     deriving (Show,Typeable,Eq,Hashable,Binary,NFData)
 
+data LogSource = FileSystem | BareGit | NoLogs deriving Show
+
+determineLogSource :: IO LogSource
+determineLogSource = do
+    haveLogs <- System.Directory.doesDirectoryExist "logs"
+    if haveLogs
+    then do
+        Stdout s <- cmd "git -C logs rev-parse --is-bare-repository"
+        if s == "true\n"
+        then return BareGit
+        else return FileSystem
+    else return NoLogs
+
 shakeMain :: IO ()
-shakeMain = shakeArgs shakeOptions $ do
+shakeMain = do
+    logSource <- determineLogSource
+    print logSource
+
+    shakeArgs shakeOptions $ do
     defaultRuleGitLib
 
 {-
@@ -89,7 +109,7 @@ shakeMain = shakeArgs shakeOptions $ do
         range <- gitRange
         Stdout range <- git "log" ["--format=%H",range]
         let hashes = words range
-        withLogs <- filterM doesLogExist hashes
+        withLogs <- filterM (doesLogExist logSource) hashes
         need $ map reportOf withLogs
     want ["reports"]
 
@@ -97,7 +117,7 @@ shakeMain = shakeArgs shakeOptions $ do
         range <- gitRange
         Stdout range <- git "log" ["--format=%H",range]
         let hashes = words range
-        withLogs <- filterM doesLogExist hashes
+        withLogs <- filterM (doesLogExist logSource) hashes
         need $ map summaryOf withLogs
     want ["summaries"]
 
@@ -105,7 +125,7 @@ shakeMain = shakeArgs shakeOptions $ do
         alwaysRerun
         Stdout stdout <- git "rev-parse" ["master"]
         writeFileChanged out stdout
-     
+
 
     "site/out/history.csv" *> \out -> do
         range <- gitRange
@@ -117,17 +137,17 @@ shakeMain = shakeArgs shakeOptions $ do
          orderOnly ["site/out/history.csv"]
          liftIO $ ssvFileToMap "site/out/history.csv"
     let history = history' ()
-    let pred h = do { hist <- history; findPred hist h }
-    let predOrSelf h = do { hist <- history; findPredOrSelf hist h }
-    let recent n h = do { hist <- history; findRecent hist n h }
+    let pred h = do { hist <- history; findPred logSource hist h }
+    let predOrSelf h = do { hist <- history; findPredOrSelf logSource hist h }
+    let recent n h = do { hist <- history; findRecent logSource hist n h }
 
     "site/out/latest.txt" *> \ out -> do
         [head] <- readFileLines "site/out/head.txt"
         latestM <- predOrSelf head
         case latestM of
-           Just latest -> 
+           Just latest ->
                 writeFileChanged out latest
-           Nothing -> 
+           Nothing ->
                 fail "Head has no parent with logs?"
 
     "graphs" ~> do
@@ -137,13 +157,22 @@ shakeMain = shakeArgs shakeOptions $ do
         need (map graphFile b)
     want ["graphs"]
 
-    "site/out/results/*.csv" *> \out -> do
-        let hash = takeBaseName out
-        withTempFile $ \fn -> do
-            log <- readGitFile "logs" (hash <.> "log")
-            liftIO $ BS.writeFile fn log
-            Stdout csv <- cmd "./log2csv" fn
-            writeFile' out csv
+    case logSource of
+        BareGit ->
+            "site/out/results/*.csv" *> \out -> do
+                let hash = takeBaseName out
+                withTempFile $ \fn -> do
+                    log <- readGitFile "logs" (hash <.> "log")
+                    liftIO $ BS.writeFile fn log
+                    Stdout csv <- cmd "./log2csv" fn
+                    writeFile' out csv
+        FileSystem ->
+            "site/out/results/*.csv" *> \out -> do
+                let hash = takeBaseName out
+                need [logsOf hash]
+                Stdout csv <- cmd "./log2csv" (logsOf hash)
+                writeFile' out csv
+        NoLogs -> return ()
 
     "site/out/graphs//*.json" *> \out -> do
         let bench = dropDirectory1 (dropDirectory1 (dropDirectory1 (dropExtension out)))
@@ -198,7 +227,7 @@ shakeMain = shakeArgs shakeOptions $ do
         range <- gitRange
         Stdout range <- git "log" ["--format=%H",range]
         let hashes = words range
-        withLogs <- filterM doesLogExist hashes
+        withLogs <- filterM (doesLogExist logSource) hashes
         need (map summaryOf withLogs)
 
         Stdout json <- self "IndexReport" withLogs
