@@ -16,13 +16,4 @@ cp ../site/js/gipeda.js site/js/gipeda.js
 
 ./gipeda
 
-cd site
-
-rm -rf .git
-git init 
-git remote add origin ../..
-git fetch 
-git branch master origin/gh-pages
-git add .
-git commit -m 'New gh-pages checkout'
-git push origin HEAD:gh-pages
+lftp sftp://ghc-perf:xxx@www-origin.haskell.org -e 'mirror -c -e -R site ghc-perf/gipeda; exit'
