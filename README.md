@@ -33,6 +33,10 @@ Setting it up
 
  * Clone gipedia somewhere, possibly directly into your webspace.
  * Install a Haskell compiler, including the `cablal` tool.
+ * Install a few packages
+
+        apt-get install git unzip libfile-slurp-perl libipc-run-perl
+
  * Install the dependencies:
 
         cabal install --only-dependencies
