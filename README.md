@@ -26,7 +26,7 @@ Do you want to see it live? Check out these:
  * [GHC’s gipeda installation].
 
 [Demo page]: http://nomeata.github.io/gipeda/
-[GHC’s gipeda installation]: https://perf.haskell.org/
+[GHC’s gipeda installation]: https://perf.haskell.org/ghc
 
 Setting it up
 -------------
