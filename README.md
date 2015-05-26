@@ -4,7 +4,7 @@ Gipeda -- the Git Performance Dashboard
 What is gipeda?
 ---------------
 
-Gitpeda is a a tool that presents data from your program’s benchmark suite (or
+Gipeda is a a tool that presents data from your program’s benchmark suite (or
 any other source), with nice tables and shiny graphs.
 
 

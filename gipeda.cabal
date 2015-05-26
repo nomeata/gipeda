@@ -3,7 +3,7 @@ version:             0.1.0.3
 category:            Development
 synopsis:            Git Performance Dashboard
 description:
- Gitpeda is a a tool that presents data from your program’s benchmark suite
+ Gipeda is a a tool that presents data from your program’s benchmark suite
  (or any other source), with nice tables and shiny graphs.
  .
  So it is up to you whether you have a polling shell script loop, a post-commit
