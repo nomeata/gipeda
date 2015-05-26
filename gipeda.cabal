@@ -57,7 +57,8 @@ executable gipeda
     Shake,
     Summary,
     WithLatestLogs,
-    Development.Shake.Gitlib
+    Development.Shake.Gitlib,
+    Data.Text.Binary
 
 
   build-depends:
