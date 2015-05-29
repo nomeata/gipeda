@@ -26,11 +26,9 @@ graphSummaries benchNames = do
                     results <- rev .: "benchResults"
                     result <- results .: T.pack bName
                     parseJSON result
-        return $ object [
-            T.pack bName .= object
+        return $ T.pack bName .= object
                 [ T.pack "improvements" .= length [ () | gp <- gps, gpChangeType gp == Improvement ]
                 , T.pack "regressions"  .= length [ () | gp <- gps, gpChangeType gp == Regression]
                 ]
-            ]
-    let o = object [ "graphSummaries" .= merges g ]
+    let o = object [ "graphSummaries" .= object g ]
     BS.putStr $ encode o

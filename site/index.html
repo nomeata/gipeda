@@ -57,7 +57,7 @@ html {
     border-collapse:collapse; 
     
 }
-.summary-row-collapsed + .summary-row td {
+.summary-table .summary-row-collapsed + .summary-row td {
     border-top: 4px dotted #DDD;
 
 }
@@ -230,13 +230,32 @@ html {
           </thead>
           <tbody>
            {{#each groupMembers}}
-            <tr>
-            <td class="benchmark-name">
-	     {{this}}
-	     <a class="graph-link" title="Graphs" href="{{graphLink this}}">
-	      <span class="glyphicon glyphicon-signal"/>
-	     </a>
-	    </td>
+            <tr class="
+              summary-row
+              {{#with (lookup ../../graphSummaries this)}}
+               {{#if improvements}}summary-improvement{{/if}}
+               {{#if regressions}}summary-regression{{/if}}
+              {{/with}}
+              "
+            >
+             <td class="benchmark-name">
+              {{this}}
+              <a class="graph-link" title="Graphs" href="{{graphLink this}}">
+               <span class="glyphicon glyphicon-signal"/>
+              </a>
+             </td>
+             <td class="col-md-2 text-right">
+              {{#with (lookup ../../graphSummaries this)}}
+               <span>
+                {{improvements}}
+                <span class="glyphicon glyphicon-plus text-success"></span>
+               </span>
+               <span>
+                {{regressions}}
+                <span class="glyphicon glyphicon-minus text-warning"></span>
+               </span>
+              {{/with}}
+             </td>
             </tr>
            {{/each}}
           </tbody>

@@ -36,7 +36,7 @@ var routes = {
         },
     graphIndex:
         { regex: /^graphs$/,
-          download: ['out/benchNames.json'],
+          download: ['out/benchNames.json', 'out/graph-summaries.json'],
           url: function () {return "graphs"},
         },
     revision:
@@ -233,6 +233,9 @@ function getJSON(url, callback, options) {
 	        dataChanged.dispatch();
 		$.each(jsonFetching[url], function (i,c) {c()});
 		delete jsonFetching[url];
+            },
+            error: function (e) {
+                console.log("Failure fetching "+url,e);
             },
 	    cache: false,
             dataType: 'json',
