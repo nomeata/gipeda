@@ -18,19 +18,13 @@ import Development.Shake
 import Development.Shake.Rule
 import Development.Shake.Classes
 
+import Data.Text.Binary
+
 import Git
 import Git.Libgit2
 import Data.Tagged
 
 type RepoPath = FilePath
-
-
--- I do not want a new dependency just for these, so this is copied from text-binary
-instance Binary T.Text where
-    put = put . T.encodeUtf8
-    get = T.decodeUtf8 <$> get
-
-
 
 newtype GetGitReferenceQ = GetGitReferenceQ (RepoPath, RefName)
     deriving (Typeable,Eq,Hashable,Binary,NFData,Show)

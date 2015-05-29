@@ -2,25 +2,13 @@
 
 module JsonSettings where
 
+import Data.Yaml
 import Data.Aeson
 import qualified Data.ByteString.Lazy as BS
-
-import BenchmarkSettings as S
+import Data.Functor
 
 jsonSettingsMain :: IO ()
 jsonSettingsMain = do
-    Settings {..} <- S.readSettings "settings.yaml"
-    let o = object
-            [ "settings" .= object
-                [ "title" .= title
-                , "cgitLink" .= cgitLink
-                , "logLink" .= logLink
-                , "limitRecent" .= limitRecent
-                ]
-            ]
-    BS.putStr (encode o)
-
-
-
-    
-
+    s <- either (error.show) id <$> decodeFileEither "settings.yaml"
+    let o = object [ "settings" .= (s :: Object) ]
+    BS.putStr (Data.Aeson.encode o)

@@ -1,9 +1,9 @@
 name:                gipeda
-version:             0.1.0.2
+version:             0.1.0.3
 category:            Development
 synopsis:            Git Performance Dashboard
 description:
- Gitpeda is a a tool that presents data from your program’s benchmark suite
+ Gipeda is a a tool that presents data from your program’s benchmark suite
  (or any other source), with nice tables and shiny graphs.
  .
  So it is up to you whether you have a polling shell script loop, a post-commit
@@ -56,8 +56,10 @@ executable gipeda
     RevReport,
     Shake,
     Summary,
+    GraphSummaries,
     WithLatestLogs,
-    Development.Shake.Gitlib
+    Development.Shake.Gitlib,
+    Data.Text.Binary
 
 
   build-depends:
@@ -73,11 +75,15 @@ executable gipeda
       vector               >= 0.10 && <0.11,
       cassava              >= 0.4  && <0.5,
       yaml                 >= 0.8  && <0.9,
-      aeson                >= 0.7  && <0.9,
+      aeson                >= 0.7  && <0.10,
+      scientific           >= 0.3  && <0.4,
       gitlib               >= 3.1  && <3.2,
       gitlib-libgit2,
       tagged               >= 0.7  && <0.9,
-      extra                >= 1.1  && <1.2
+      extra                >= 1.1  && <1.2,
+
+      -- https://github.com/jwiegley/gitlib/issues/46
+      conduit-combinators  < 1
 
   hs-source-dirs: src
 

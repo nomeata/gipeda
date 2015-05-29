@@ -8,6 +8,7 @@ import Data.Aeson.Types
 import GHC.Generics
 import Text.Printf
 import Data.List
+import Data.Char
 
 import Paths
 import ReadResult
@@ -106,7 +107,26 @@ data BenchResult = BenchResult
  deriving (Generic)
 instance ToJSON BenchResult where
     toJSON = genericToJSON defaultOptions
-instance FromJSON BenchResult
+instance FromJSON BenchResult where
+    parseJSON = genericParseJSON defaultOptions
+
+-- A smaller BenchResult
+data GraphPoint = GraphPoint
+    { gpValue :: BenchValue
+    , gpChangeType :: ChangeType
+    }
+ deriving (Generic)
+instance ToJSON GraphPoint where
+    toJSON = genericToJSON (defaultOptions { fieldLabelModifier = fixup })
+instance FromJSON GraphPoint where
+    parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = fixup })
+
+fixup ('g':'p':c:cs) = toLower c : cs
+
+benchResultToGraphPoint (BenchResult {..}) = GraphPoint
+    { gpValue = value
+    , gpChangeType = changeType
+    }
 
 invertChangeType :: ChangeType -> ChangeType
 invertChangeType Improvement = Regression
@@ -152,8 +172,9 @@ toFloat (F f) = f
 explain :: S.BenchSettings -> BenchValue -> BenchValue -> (String, ChangeType)
 explain s@(S.numberType -> S.SmallIntegralNT) (I i1) (I i2) = explainSmallInt s i1 i2
 explain s@(S.numberType -> S.IntegralNT)      (I i1) (I i2) = explainInt s i1 i2
-explain s@(S.numberType -> S.FloatingNT)      v1     v2     = explainFloat s (toFloat v1) (toFloat v2)
-explain _ _ _ = noExplanation
+-- Treat everything else as Floats, so that we do something sensible
+-- even if the user did not set the numberType correctly:
+explain s                                     v1     v2     = explainFloat s (toFloat v1) (toFloat v2)
 
 toResult :: S.BenchSettings -> String -> BenchValue -> Maybe BenchValue -> BenchResult
 toResult s name value prev = BenchResult

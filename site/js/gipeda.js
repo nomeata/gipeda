@@ -24,7 +24,7 @@ dataChanged = new signals.Signal()
 // Routes
 
 var routes = {
-    index: 
+    index:
         { regex: /^$/,
           download: ['out/latest-summaries.json'],
           url: function () {return ""},
@@ -36,7 +36,7 @@ var routes = {
         },
     graphIndex:
         { regex: /^graphs$/,
-          download: ['out/benchNames.json'],
+          download: ['out/benchNames.json', 'out/graph-summaries.json'],
           url: function () {return "graphs"},
         },
     revision:
@@ -46,6 +46,17 @@ var routes = {
             return ['out/benchNames.json','out/reports/' + viewData.hash + '.json'];
           },
           url: function (hash) { return "revision/" + hash; },
+        },
+    compare:
+        { regex: /^compare\/([a-f0-9]+)\/([a-f0-9]+)$/,
+          viewData: function (match) { return { hash1: match[1], hash2: match[2] }; },
+          download: function () {
+            return ['out/benchNames.json',
+	            'out/reports/' + viewData.hash1 + '.json',
+	            'out/reports/' + viewData.hash2 + '.json'
+		    ];
+          },
+          url: function (hash1, hash2) { return "compare/" + hash1 + "/" + hash2; },
         },
     graph:
         { regex: /^graph\/(.*)$/,
@@ -129,7 +140,7 @@ function commitsFrom(revs, hash, count) {
 var templates = {};
 
 $(function ()  {
-  var template_ids =  ["revision", "index", "complete", "graphIndex", "graph", "revTooltip"];
+  var template_ids =  ["revision", "compare", "index", "complete", "graphIndex", "graph", "revTooltip"];
   template_ids.forEach(function(id) {
     var source = $("#" + id).html();
     templates[id] = Handlebars.compile(source);
@@ -147,18 +158,26 @@ Handlebars.registerHelper('revisionLink', function(hash) {
   if (!hash) { return "#"; }
   return "#" + routes.revision.url(hash);
 });
-Handlebars.registerHelper('graphLink', function(benchName, hl) {
-    if (hl) {
-        return "#" + routes.graph.url(benchName,[hl]);
-    } else {
-        return "#" + routes.graph.url(benchName);
-    }
+Handlebars.registerHelper('compareLink', function(hash1,hash2) {
+  if (!hash1) { return "#"; }
+  if (!hash2) { return "#"; }
+  return "#" + routes.compare.url(hash1,hash2);
+});
+Handlebars.registerHelper('graphLink', function(benchName, hl1, hl2) {
+    hls = [];
+    if (hl1) {hls.push(hl1)};
+    if (hl2) {hls.push(hl2)};
+    return "#" + routes.graph.url(benchName,hls);
 });
 Handlebars.registerHelper('diffLink', function(rev1, rev2) {
   return data.settings.cgitLink + "/commitdiff/" + rev2
 });
-Handlebars.registerHelper('logLink', function(rev) {
-  return Handlebars.compile(data.settings.logLink)({rev:rev});
+Handlebars.registerHelper('logLink', function(rev, options) {
+  if (data.settings.logLink) {
+    var link = Handlebars.compile(data.settings.logLink)({rev: rev});
+    $.extend(this,{link:link});
+    return options.fn(this);
+  }
 });
 Handlebars.registerHelper('indexLink', function() {
   return "#" + routes.index.url();
@@ -182,7 +201,7 @@ function shortRev(rev) {
 Handlebars.registerHelper('shortRev', shortRev);
 Handlebars.registerHelper('iso8601', function(timestamp) {
   if (!timestamp) { return '' };
-  return new Date(timestamp*1000).toISOString();	   
+  return new Date(timestamp*1000).toISOString();
 });
 Handlebars.registerHelper('humanDate', function(timestamp) {
   return new Date(timestamp*1000).toString();
@@ -190,6 +209,7 @@ Handlebars.registerHelper('humanDate', function(timestamp) {
 
 // We cache everything
 var jsonSeen = {};
+var jsonFetching = {};
 function getJSON(url, callback, options) {
     var opts = {
         block: true,
@@ -198,15 +218,24 @@ function getJSON(url, callback, options) {
     if (jsonSeen[url]) {
 	console.log("Not fetching "+url+" again.");
 	if (callback) callback();
+    } else if (jsonFetching[url]) {
+	console.log("Already fetching "+url+".");
+	if (callback) jsonFetching[url].push(callback);
     } else {
 	console.log("Fetching "+url+".");
+	jsonFetching[url] = [];
+	if (callback) jsonFetching[url].push(callback);
         $.ajax(url, {
             success: function (newdata) {
 		console.log("Fetched "+url+".");
 	        jsonSeen[url] = true;
 	        $.extend(true, data, newdata);
 	        dataChanged.dispatch();
-	        if (callback) callback();
+		$.each(jsonFetching[url], function (i,c) {c()});
+		delete jsonFetching[url];
+            },
+            error: function (e) {
+                console.log("Failure fetching "+url,e);
             },
 	    cache: false,
             dataType: 'json',
@@ -223,6 +252,102 @@ function groupStats (benchResults) {
     improvementCount: benchResults.filter(function (br) { return br.changeType == 'Improvement' }).length,
     regressionCount:  benchResults.filter(function (br) { return br.changeType == 'Regression' }).length,
   }
+}
+
+function benchmark_name_matches(pattern, name) {
+    if (pattern[pattern.length-1] == "*") {
+        return pattern.substr(0, pattern.length-1) == name.substr(0, pattern.length-1);
+    } else {
+        return pattern == name;
+    }
+}
+
+// The following logic should be kept in sync with BenchmarkSettings.hs
+function setting_for(name) {
+    var benchSettings = {
+        smallerIsBetter: true,
+        unit: "",
+        type: "integral",
+        group: "",
+        threshold: 3,
+        important: true
+    };
+
+    data.settings.benchmarks.map(function (s) {
+        if (benchmark_name_matches(s.match, name)) {
+            $.extend(benchSettings, s);
+        }
+    })
+
+    return benchSettings;
+}
+
+
+// The following logic should be kept in sync with toResult in ReportTypes.hs
+function compareResults (res1, res2) {
+    if (!res1 && !res2) { return };
+
+    name = res1? res1.name : res2.name;
+    s = setting_for(name);
+
+    res = {
+        name: name,
+        previous:    res1 ? res1.value : null,
+        value:       res2 ? res2.value : null,
+        unit:        s.unit,
+        important:   s.important,
+        changeType: "Boring",
+        change: "foobar",
+    };
+
+    if (res1 && res2){
+        if (s.type == "integral" || s.type == "float"){
+            if (res1.value == 0 && res2.value == 0) {
+                res.change = "=";
+            } else if (res1.value == 0) {
+                res.change = "+  ∞";
+                res.changeType = "Improvement";
+            } else {
+                var perc = 100.0 * (res2.value - res1.value) / res1.value;
+                var percS = Math.round (perc * 100.0) / 100;
+                if (Math.abs(perc) < 0.01) {
+                    res.change = "=";
+                } else if (perc >= 0) {
+                    res.change = "+ " + percS + "%";
+                } else {
+                    res.change = "- " + (-percS) + "%";
+                }
+
+                if (Math.abs(perc) >= s.threshold) {
+                    if (perc >= 0) {
+                        s.changeType = "Improvement";
+                    } else {
+                        s.changeType = "Regression";
+                    }
+                }
+            }
+        } else if (s.type == "small integral") {
+            if (res1.value == res2.value) {
+                res.change = "=";
+            } else if (res2.value > res1.value) {
+                res.change = "+" + (res2.value - res1.value);
+                res.changeType = "Improvement";
+            } else if (res1.value > res2.value) {
+                res.change = "-" + (res1.value - res2.value);
+                res.changeType = "Regression";
+            }
+        }
+
+        if (s.smallerIsBetter) {
+            if (res.changeType == "Improvement") {
+                res.changeType = "Regression";
+            } else if (res.changeType == "Regression") {
+                res.changeType = "Improvement";
+            }
+        }
+    }
+
+    return res;
 }
 
 // Some views require the data to be prepared in ways that are 
@@ -247,6 +372,35 @@ dataViewPrepare = {
     });
     return {
       rev : rev,
+      groups : groups,
+    };
+  },
+  'compare': function (data, viewData) {
+    if (!data.benchGroups || !data.revisions) return {};
+    var hash1 = viewData.hash1;
+    var hash2 = viewData.hash2;
+    var rev1 = data.revisions[hash1];
+    var rev2 = data.revisions[hash2];
+    if (!rev1) return {};
+    if (!rev1.benchResults) return {};
+    if (!rev2) return {};
+    if (!rev2.benchResults) return {};
+
+    var groups = data.benchGroups.map(function (group) {
+      var benchmarks = group.groupMembers.map(function (bn) {
+      	var r1 = rev1.benchResults[bn];
+      	var r2 = rev2.benchResults[bn];
+	return compareResults(r1,r2);
+      }).filter(function (br) {return br});
+      return {
+	groupName: group.groupName,
+	benchResults: benchmarks,
+	groupStats: groupStats(benchmarks),
+      };
+    });
+    return {
+      rev1 : rev1,
+      rev2 : rev2,
       groups : groups,
     };
   },
@@ -324,11 +478,11 @@ function setupChart () {
 	  }
 	};
 
-    var numberType;
+    var type;
     if (data.benchmarkSettings && data.benchmarkSettings[benchName]) {
-        numberType = data.benchmarkSettings[benchName].numberType;
+        type = data.benchmarkSettings[benchName].type;
     }
-    if (numberType == "integral" || numberType == "small integral") {
+    if (type == "integral" || type == "small integral") {
         plot_options.yaxis.minTickSize = 1;
         plot_options.yaxis.tickDecimals = 0;
     }

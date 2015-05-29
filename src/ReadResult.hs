@@ -12,6 +12,7 @@ import System.Directory
 import Data.Aeson hiding (decode)
 import GHC.Generics
 import Data.Char
+import Data.Scientific
 
 import Paths
 
@@ -24,11 +25,11 @@ data BenchValue =
 
 type ResultMap = M.Map String BenchValue
 
-instance ToJSON BenchValue where 
+instance ToJSON BenchValue where
     toJSON (F d) = toJSON d
     toJSON (I i) = toJSON i
-instance FromJSON BenchValue where 
-    parseJSON o = (I <$> parseJSON o) <|> (F <$> parseJSON o)
+instance FromJSON BenchValue where
+    parseJSON o = either F I . floatingOrInteger <$> parseJSON o
 
 instance FromField BenchValue where
     parseField s = (I <$> parseField s) <|> (F <$> parseField s)

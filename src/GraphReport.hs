@@ -20,14 +20,15 @@ graphReportMain (bench:revs) = do
     settings <- S.readSettings "settings.yaml"
 
     g <- forM revs $ \rev -> do
-        m <- readCSV rev
-        case M.lookup bench m of
+        json <- BS.readFile (reportOf rev)
+        rep <- case eitherDecode json of
+            Left e -> fail e
+            Right rep -> return rep
+        case M.lookup bench (benchResults (rep !!! "revisions" !!! rev)) of
             Nothing -> return Nothing
-            Just v -> return $ Just $ T.pack rev .= object
+            Just result -> return $ Just $ T.pack rev .= object
                         [ "benchResults" .= object
-                            [ T.pack bench .= object
-                                [ "value" .= v ]
-                            ]
+                            [ T.pack bench .= benchResultToGraphPoint result ]
                         ]
     let doc = object
                 [ "revisions" .= object (catMaybes g)
@@ -36,4 +37,5 @@ graphReportMain (bench:revs) = do
                 ]
 
     BS.putStr (encode doc)
-    
+  where
+   m !!! k =  m M.! T.pack k

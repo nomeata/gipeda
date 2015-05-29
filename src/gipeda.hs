@@ -11,6 +11,7 @@ import Summary
 import IndexReport
 import GraphReport
 import BenchNames
+import GraphSummaries
 
 import GHC.IO.Encoding
 
@@ -41,4 +42,5 @@ main = do
         "GraphReport":opts    -> graphReportMain opts
         "WithLatestLogs":opts -> withLatestLogsMain opts
         "BenchNames":opts     -> benchNamesMain opts
+        "GraphSummaries":opts  -> graphSummaries opts
         _ -> shakeMain -- shake will take the arguments from getArgs
