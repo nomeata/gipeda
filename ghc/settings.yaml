@@ -25,7 +25,6 @@ benchmarks:
 
   - match: "parser/*"
     unit: conflicts
-    integral: True
     type: small integral
     group: Parser
 

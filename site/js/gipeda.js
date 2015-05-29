@@ -328,11 +328,11 @@ function setupChart () {
 	  }
 	};
 
-    var numberType;
+    var type;
     if (data.benchmarkSettings && data.benchmarkSettings[benchName]) {
-        numberType = data.benchmarkSettings[benchName].numberType;
+        type = data.benchmarkSettings[benchName].type;
     }
-    if (numberType == "integral" || numberType == "small integral") {
+    if (type == "integral" || type == "small integral") {
         plot_options.yaxis.minTickSize = 1;
         plot_options.yaxis.tickDecimals = 0;
     }
