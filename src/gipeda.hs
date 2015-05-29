@@ -12,6 +12,8 @@ import IndexReport
 import GraphReport
 import BenchNames
 
+import GHC.IO.Encoding
+
 {-
 We want to build everything into one executable, bit still treat
 it as multiple tools. Hence the main function
@@ -20,6 +22,10 @@ here calls the various real main functions, defaulting to the shake tool.
 
 main :: IO ()
 main = do
+ 
+    -- Make us locale-independent 
+    setLocaleEncoding utf8
+
     args <- getArgs
 
     ex <- doesFileExist "settings.yaml"
