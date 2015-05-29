@@ -147,21 +147,25 @@ Handlebars.registerHelper('revisionLink', function(hash) {
   if (!hash) { return "#"; }
   return "#" + routes.revision.url(hash);
 });
-Handlebars.registerHelper('graphLink', function(benchName, hl) {
-    if (hl) {
-        return "#" + routes.graph.url(benchName,[hl]);
-    } else {
-        return "#" + routes.graph.url(benchName);
-    }
+Handlebars.registerHelper('compareLink', function(hash1,hash2) {
+  if (!hash1) { return "#"; }
+  if (!hash2) { return "#"; }
+  return "#" + routes.compare.url(hash1,hash2);
+});
+Handlebars.registerHelper('graphLink', function(benchName, hl1, hl2) {
+    hls = [];
+    if (hl1) {hls.push(hl1)};
+    if (hl2) {hls.push(hl2)};
+    return "#" + routes.graph.url(benchName,hls);
 });
 Handlebars.registerHelper('diffLink', function(rev1, rev2) {
   return data.settings.cgitLink + "/commitdiff/" + rev2
 });
 Handlebars.registerHelper('logLink', function(rev, options) {
-  console.log(rev);
   if (data.settings.logLink) {
     var link = Handlebars.compile(data.settings.logLink)({rev: rev});
-    return options.fn({link:link});
+    $.extend(this,{link:link});
+    return options.fn(this);
   }
 });
 Handlebars.registerHelper('indexLink', function() {
