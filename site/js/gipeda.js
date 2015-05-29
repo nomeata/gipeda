@@ -198,6 +198,7 @@ Handlebars.registerHelper('humanDate', function(timestamp) {
 
 // We cache everything
 var jsonSeen = {};
+var jsonFetching = {};
 function getJSON(url, callback, options) {
     var opts = {
         block: true,
@@ -206,15 +207,21 @@ function getJSON(url, callback, options) {
     if (jsonSeen[url]) {
 	console.log("Not fetching "+url+" again.");
 	if (callback) callback();
+    } else if (jsonFetching[url]) {
+	console.log("Already fetching "+url+".");
+	if (callback) jsonFetching[url].push(callback);
     } else {
 	console.log("Fetching "+url+".");
+	jsonFetching[url] = [];
+	if (callback) jsonFetching[url].push(callback);
         $.ajax(url, {
             success: function (newdata) {
 		console.log("Fetched "+url+".");
 	        jsonSeen[url] = true;
 	        $.extend(true, data, newdata);
 	        dataChanged.dispatch();
-	        if (callback) callback();
+		$.each(jsonFetching[url], function (i,c) {c()});
+		delete jsonFetching[url];
             },
 	    cache: false,
             dataType: 'json',
