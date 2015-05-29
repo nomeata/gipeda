@@ -20,10 +20,10 @@ revReportMain (this:parents) = do
 
     thisM <- readCSV this
     parentM <- case parents of
-        p:_ -> readCSV (head parents)
+        p:_ -> readCSV p
         _    -> return M.empty
 
-    log <- case parents of 
+    log <- case parents of
         p:_ -> fromStdout <$> git ["log", p ++ ".."++ this]
         _   -> fromStdout <$> git ["show", "-s", this]
 

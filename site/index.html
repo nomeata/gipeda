@@ -367,6 +367,109 @@ html {
  </div>
 </script>
 
+<script id="compare" type="text/x-handlebars-template">
+ {{> nav}}
+
+ <div class="container">
+  <div class="row">
+   <div class="col-md-6 col-md-push-6">
+    {{#if rev1.summary}}{{#if rev2.summary}}
+    <h2>
+     Comparing {{shortRev rev1.summary.hash}}..{{shortRev rev2.summary.hash}}
+    </h2>
+    <p>
+     Parents:
+     {{#each rev1.summary.parents}}
+      <a href="{{compareLink this ../rev2.summary.hash}}">{{shortRev this}}</a>
+     {{/each}}</br>
+     <abbrv class="timeago" title="{{ iso8601 gitDate }}">{{ humanDate rev1.summary.gitDate}}</abbrv>:<br/>
+     <strong>{{ rev1.summary.gitSubject }}</strong><br/>
+     {{#logLink rev1.summary.hash }}
+      <a href="{{link}}">buildlog</a>
+     {{/logLink}}
+    </p>
+    <p class="text-center">
+      ⁞<br/>
+      <a href="{{diffLink rev1.summary.hash rev2.summary.hash}}">View diff</a><br/>
+      ⁞
+    </p> 
+    <p>
+     <abbrv class="timeago" title="{{ iso8601 gitDate }}">{{ humanDate rev2.summary.gitDate}}</abbrv>:<br/>
+     <strong>{{ rev2.summary.gitSubject }}</strong><br/>
+     {{#logLink rev2.summary.hash }}
+      <a href="{{link}}">buildlog</a>
+     {{/logLink}}
+    </p>
+    {{/if}} {{/if}}
+   </div>
+
+   <div class="col-md-6 col-md-pull-6">
+    {{> nothing }}
+    <div class="panel-group" role="tablist">
+     {{#each groups}}
+      <div class="panel panel-default bench-panel">
+       <div class="panel-heading" role="tab" id="heading-{{@index}}">
+        <h4 class="panel-title">
+         <a class="accordion-toggle" data-toggle="collapse" href="#table-{{@index}}">
+         {{groupName}}
+         <span class="stats pull-right">
+          {{> summary-icons groupStats}}
+          <span class="indicator-toggled glyphicon glyphicon-chevron-down text-grey"/>
+          <span class="indicator-untoggled glyphicon glyphicon-chevron-right text-grey"/>
+         </span>
+         </a>
+        </h4>
+       </div>
+
+       <div id="table-{{@index}}" class="panel-collapse collapse in" role="tabpanel">
+        <div class="panel-body">
+         <table class="table table-condensed benchmark-table">
+          <thead>
+          <tr>
+          <th class="col-md-6">Benchmark name</th>
+          <th class="col-md-2 text-right">previous</th>
+          <th class="col-md-2 text-right">change</th>
+          <th class="col-md-2 text-right">now</th>
+          </tr>
+          </thead>
+          <tbody>
+           {{#each benchResults}}
+            <tr class="row-result row-{{changeType}}">
+            <td class="benchmark-name">
+	     {{name}}
+	     <a class="graph-link" title="Graphs" href="{{graphLink name ../../rev1.summary.hash ../../rev2.summary.hash}}">
+	      <span class="glyphicon glyphicon-signal"/>
+	     </a>
+	    </td>
+            <td class="text-right">{{previous}}</td>
+            <td class="text-right">{{change}}</td>
+            <td class="text-right">{{value}}</td>
+            </tr>
+           {{/each}}
+          </tbody>
+         </table>
+        </div>
+       </div> 
+      </div>
+     {{/each}}
+    </div>
+   </div>
+  </div>
+</script>
+
+<script id="graph" type="text/x-handlebars-template">
+ {{> nav}}
+
+ <div class="container">
+ <h2>{{benchName}}</h2>
+
+ <div id="benchChart" style="width:100%; height:400px">
+ </div>
+
+ <p><button id="loadMore">Load older revisions</button></p>
+ </div>
+</script>
+
 </head>
 
 <body>
