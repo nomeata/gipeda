@@ -152,8 +152,9 @@ toFloat (F f) = f
 explain :: S.BenchSettings -> BenchValue -> BenchValue -> (String, ChangeType)
 explain s@(S.numberType -> S.SmallIntegralNT) (I i1) (I i2) = explainSmallInt s i1 i2
 explain s@(S.numberType -> S.IntegralNT)      (I i1) (I i2) = explainInt s i1 i2
-explain s@(S.numberType -> S.FloatingNT)      v1     v2     = explainFloat s (toFloat v1) (toFloat v2)
-explain _ _ _ = noExplanation
+-- Treat everything else as Floats, so that we do something sensible
+-- even if the user did not set the numberType correctly:
+explain s                                     v1     v2     = explainFloat s (toFloat v1) (toFloat v2)
 
 toResult :: S.BenchSettings -> String -> BenchValue -> Maybe BenchValue -> BenchResult
 toResult s name value prev = BenchResult
