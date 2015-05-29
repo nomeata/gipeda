@@ -375,14 +375,15 @@ html {
    <div class="col-md-6 col-md-push-6">
     {{#if rev1.summary}}{{#if rev2.summary}}
     <h2>
-     Comparing {{shortRev rev1.summary.hash}}..{{shortRev rev2.summary.hash}}
+     Comparing
+      <code>{{shortRev rev1.summary.hash}}</code>..<code>{{shortRev rev2.summary.hash}}</code>
     </h2>
     <p>
      Parents:
      {{#each rev1.summary.parents}}
       <a href="{{compareLink this ../rev2.summary.hash}}">{{shortRev this}}</a>
      {{/each}}</br>
-     <abbrv class="timeago" title="{{ iso8601 gitDate }}">{{ humanDate rev1.summary.gitDate}}</abbrv>:<br/>
+      <a href="{{revisionLink rev1.summary.hash}}"><code>{{shortRev rev1.summary.hash}}</code></a> <abbrv class="timeago" title="{{ iso8601 gitDate }}">{{ humanDate rev1.summary.gitDate}}</abbrv>:<br/>
      <strong>{{ rev1.summary.gitSubject }}</strong><br/>
      {{#logLink rev1.summary.hash }}
       <a href="{{link}}">buildlog</a>
@@ -392,9 +393,13 @@ html {
       ⁞<br/>
       <a href="{{diffLink rev1.summary.hash rev2.summary.hash}}">View diff</a><br/>
       ⁞
-    </p> 
+    </p>
     <p>
-     <abbrv class="timeago" title="{{ iso8601 gitDate }}">{{ humanDate rev2.summary.gitDate}}</abbrv>:<br/>
+     Parents:
+     {{#each rev2.summary.parents}}
+      <a href="{{compareLink ../rev1.summary.hash this}}">{{shortRev this}}</a>
+     {{/each}}</br>
+     <a href="{{revisionLink rev2.summary.hash}}"><code>{{shortRev rev2.summary.hash}}</code></a> <abbrv class="timeago" title="{{ iso8601 gitDate }}">{{ humanDate rev2.summary.gitDate}}</abbrv>:<br/>
      <strong>{{ rev2.summary.gitSubject }}</strong><br/>
      {{#logLink rev2.summary.hash }}
       <a href="{{link}}">buildlog</a>
