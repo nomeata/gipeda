@@ -22,7 +22,7 @@ no security problems.
 
 Do you want to see it live? Check out these:
 
- * [Demo page], visualizing fairly boring stuff about gipedia itself.
+ * [Demo page], visualizing fairly boring stuff about gipeda itself.
  * [GHC’s gipeda installation].
 
 [Demo page]: http://perf.haskell.org/gipeda
@@ -31,7 +31,7 @@ Do you want to see it live? Check out these:
 Setting it up
 -------------
 
- * Clone gipedia somewhere, possibly directly into your webspace.
+ * Clone gipeda somewhere, possibly directly into your webspace.
  * Install a Haskell compiler, including the `cablal` tool.
  * Install a few packages
 
@@ -87,7 +87,7 @@ make sure your repository is up-to-date, e.g. by running `git -C repository
 pull` or, if it is a bare clone, `git -C repository fetch origin
 "+refs/heads/*:refs/heads/*" --prune`.
 
-Using gipedia
+Using gipeda
 -------------
 
 Finally, you simply point your browser to the `site/index.html`. The page
@@ -96,6 +96,29 @@ because of the filter in the top-right corner. Try to enable all buttons, even
 the `=`.
 
 To host this on a webserver, just put the `site/` directory in your webspace.
+
+Hacking on gipeda
+-----------------
+
+Gipeda doesn't do much; it mostly assembles the data and creates nice reports.
+The rough pipeline is as follows:
+
+ * Directory `logs/` contains project-specific data per git commit that has
+   been benchmarked. gipeda will run `log2csv` on these files to generate the
+   files in `site/out/results`. `logs` may be a normal directory, or (for disk
+   space efficiency) a bare git repository. This step is optional.
+ * Directory `site/out/results` contains one csv file per git commit. The
+   format is simple, as there are two columns: benchmark name and a numerical
+   value.
+ * From these files, gipeda generates a number of JSON files, some per commit
+   (`report`, `summaries`), some global (`settings`, `latest-summaries`).
+
+   A crucial idea here is that these JSON files are all but fragments of a
+   theoretical global JSON document. In other words: You could combine them
+   (using a naive JSON object merge) and there would be no conflicts, and the
+   result could be used by the client as well.
+ * The client (`site/index.html` and `site/js/gipeda.js`) is a fairly standard
+   HTML+JS application using jquery, bootstrap, handlebars.
 
 Bugs, Code, Contact
 -------------------
