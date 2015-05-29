@@ -28,11 +28,7 @@ graphReportMain (bench:revs) = do
             Nothing -> return Nothing
             Just result -> return $ Just $ T.pack rev .= object
                         [ "benchResults" .= object
-                            [ T.pack bench .= object
-                                [ "value" .= value result
-                                , "changeType" .= changeType result
-                                ]
-                            ]
+                            [ T.pack bench .= benchResultToGraphPoint result ]
                         ]
     let doc = object
                 [ "revisions" .= object (catMaybes g)

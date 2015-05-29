@@ -211,6 +211,16 @@ shakeMain = do
         writeFile' out json
     want ["site/out/latest-summaries.json"]
 
+    "site/out/graph-summaries.json" *> \out -> do
+        [latest] <- readFileLines "site/out/latest.txt"
+        need [resultsOf latest]
+        b <- liftIO $ benchmarksInCSVFile (resultsOf latest)
+        need (map graphFile b)
+
+        Stdout json <- self "GraphSummaries" b
+        writeFile' out json
+    want ["site/out/graph-summaries.json"]
+
     "site/out/benchNames.json" *> \out -> do
         [latest] <- readFileLines "site/out/latest.txt"
         need [resultsOf latest]

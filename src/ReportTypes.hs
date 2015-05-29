@@ -8,6 +8,7 @@ import Data.Aeson.Types
 import GHC.Generics
 import Text.Printf
 import Data.List
+import Data.Char
 
 import Paths
 import ReadResult
@@ -108,6 +109,24 @@ instance ToJSON BenchResult where
     toJSON = genericToJSON defaultOptions
 instance FromJSON BenchResult where
     parseJSON = genericParseJSON defaultOptions
+
+-- A smaller BenchResult
+data GraphPoint = GraphPoint
+    { gpValue :: BenchValue
+    , gpChangeType :: ChangeType
+    }
+ deriving (Generic)
+instance ToJSON GraphPoint where
+    toJSON = genericToJSON (defaultOptions { fieldLabelModifier = fixup })
+instance FromJSON GraphPoint where
+    parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = fixup })
+
+fixup ('g':'p':c:cs) = toLower c : cs
+
+benchResultToGraphPoint (BenchResult {..}) = GraphPoint
+    { gpValue = value
+    , gpChangeType = changeType
+    }
 
 invertChangeType :: ChangeType -> ChangeType
 invertChangeType Improvement = Regression
