@@ -180,7 +180,7 @@ shakeMain = do
         [latest] <- readFileLines "site/out/latest.txt"
         limitRecent <- getLimitRecent (LimitRecent ())
         r <- recent limitRecent latest
-        need (map resultsOf r)
+        need (map reportOf r)
 
         Stdout json <- self "GraphReport" (bench : r)
         writeFile' out json

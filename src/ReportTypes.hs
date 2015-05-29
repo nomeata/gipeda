@@ -106,7 +106,8 @@ data BenchResult = BenchResult
  deriving (Generic)
 instance ToJSON BenchResult where
     toJSON = genericToJSON defaultOptions
-instance FromJSON BenchResult
+instance FromJSON BenchResult where
+    parseJSON = genericParseJSON defaultOptions
 
 invertChangeType :: ChangeType -> ChangeType
 invertChangeType Improvement = Regression
