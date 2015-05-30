@@ -478,11 +478,11 @@ function setupChart () {
 	  }
 	};
 
-    var type;
+    var numberType;
     if (data.benchmarkSettings && data.benchmarkSettings[benchName]) {
-        type = data.benchmarkSettings[benchName].type;
+        numberType = data.benchmarkSettings[benchName].numberType;
     }
-    if (type == "integral" || type == "small integral") {
+    if (numberType == "integral" || numberType == "small integral") {
         plot_options.yaxis.minTickSize = 1;
         plot_options.yaxis.tickDecimals = 0;
     }
