@@ -200,8 +200,10 @@ function shortRev(rev) {
 }
 Handlebars.registerHelper('shortRev', shortRev);
 Handlebars.registerHelper('id', function (text) {
-    lines = text.split(/\r?\n/);
-    return new Handlebars.SafeString(lines.map(Handlebars.escapeExpression).join('&#10;'))
+    if (text) {
+	lines = text.split(/\r?\n/);
+	return new Handlebars.SafeString(lines.map(Handlebars.escapeExpression).join('&#10;'))
+    }
 });
 Handlebars.registerHelper('iso8601', function(timestamp) {
   if (!timestamp) { return '' };
