@@ -199,6 +199,10 @@ function shortRev(rev) {
   return rev.substr(0,7);
 }
 Handlebars.registerHelper('shortRev', shortRev);
+Handlebars.registerHelper('id', function (text) {
+    lines = text.split(/\r?\n/);
+    return new Handlebars.SafeString(lines.map(Handlebars.escapeExpression).join('&#10;'))
+});
 Handlebars.registerHelper('iso8601', function(timestamp) {
   if (!timestamp) { return '' };
   return new Date(timestamp*1000).toISOString();
