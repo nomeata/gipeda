@@ -509,7 +509,7 @@ function setupChart () {
 
                 if ($("#tooltip").data('rev') != rev) {
                     $("#tooltip")
-		    	.html(shortRev(rev))
+			.html(shortRev(rev))
 			.data('rev',rev)
 		        .html(templates.revTooltip(tooltipContext))
                         .fadeIn(200)
@@ -589,8 +589,15 @@ function updateBenchFilter() {
         $('tr.summary-row.summary-improvement')
             .removeClass('summary-row-collapsed');
     }
-    $('tr.summary-row').first()
+    // Always show first entry in the history
+    $('.summary-table tr.summary-row').first()
             .removeClass('summary-row-collapsed');
+
+    $('.graph-list-panel').show().each(function() {
+        if ($(this).has('tr.summary-row:visible').length == 0) {
+            $(this).hide();
+        }
+    });
 
     updateNothingToSee();
 };

@@ -209,9 +209,10 @@ html {
   <h1>Benchmarks</h1>
  </div>
  <div class="container">
+    {{> nothing }}
     <div class="panel-group" role="tablist">
      {{#each benchGroups}}
-      <div class="panel panel-default">
+      <div class="panel panel-default graph-list-panel">
        <div class="panel-heading" role="tab" id="heading-{{@index}}">
         <h4 class="panel-title">
          <a class="accordion-toggle" data-toggle="collapse" href="#table-{{@index}}">
