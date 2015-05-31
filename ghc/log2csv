@@ -40,17 +40,17 @@ for my $filename (@ARGV) {
 
 
 	my $out;
-	run (["nofib-analyse", "--csv=Allocs", $filename], \"", \$out);# or warn "nofib-analyse: $?";
+	run (["nofib-analyze", "--csv=Allocs", $filename], \"", \$out);# or warn "nofib-analyze: $?";
 	for (split /^/, $out) {
 		printf "nofib/allocs/$1;$2\n"
 			if /(.*),(.*)/;
 	}
-	run (["nofib-analyse", "--csv=Runtime", $filename], \"", \$out);# or warn "nofib-analyse: $?";
+	run (["nofib-analyze", "--csv=Runtime", $filename], \"", \$out);# or warn "nofib-analyze: $?";
 	for (split /^/, $out) {
 		printf "nofib/time/$1;$2\n"
 			if /(.*),(.*)/ and $2 > 0.3;
 	}
-	run (["nofib-analyse", "--csv=Size", $filename], \"", \$out);# or warn "nofib-analyse: $?";
+	run (["nofib-analyze", "--csv=Size", $filename], \"", \$out);# or warn "nofib-analyze: $?";
 	for (split /^/, $out) {
 		printf "nofib/size/$1;$2\n"
 			if /(.*),(.*)/;
