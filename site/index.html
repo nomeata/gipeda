@@ -201,12 +201,7 @@ html {
    {{#each tags}}
      {{#with (lookup ../revisions this)}}
       {{#with this.summary}}
-      <tr
-       class="
-	 tag-row
-	 {{#if stats.improvementCount}}summary-improvement{{/if}}
-	 {{#if stats.regressionCount}}summary-regression{{/if}}
-       ">
+      <tr class="tag-row">
        <td class="col-md-2 text-right">
 	 <abbrv class="timeago" title="{{ iso8601 this.gitDate }}">{{ humanDate this.gitDate}}</abbrv>
        </td>
@@ -215,12 +210,11 @@ html {
 	  <code>{{shortRev hash}}</code>
 	</a>
        </td>
-       <td class="col-md-7">
+       <td class="col-md-1">
 	 <strong>{{ @key }}</strong>
-	 {{ gitSubject }}
        </td>
-       <td class="col-md-2 text-right">
-	{{> summary-icons stats}}
+       <td class="col-md-8">
+	 {{ gitSubject }}
        </td>
       </tr>
       {{/with}}

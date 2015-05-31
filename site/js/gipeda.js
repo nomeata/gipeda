@@ -394,8 +394,8 @@ dataViewPrepare = {
 
     var groups = data.benchGroups.map(function (group) {
       var benchmarks = group.groupMembers.map(function (bn) {
-      	var r1 = rev1.benchResults[bn];
-      	var r2 = rev2.benchResults[bn];
+	var r1 = rev1.benchResults[bn];
+	var r2 = rev2.benchResults[bn];
 	return compareResults(r1,r2);
       }).filter(function (br) {return br});
       return {
