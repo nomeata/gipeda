@@ -5,7 +5,6 @@ use warnings;
 
 use File::Basename;
 use File::Slurp;
-use JSON;
 use IPC::Run qw/run/;
 
 for my $filename (@ARGV) {
