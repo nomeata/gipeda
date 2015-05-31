@@ -165,8 +165,8 @@ Handlebars.registerHelper('compareLink', function(hash1,hash2) {
 });
 Handlebars.registerHelper('graphLink', function(benchName, hl1, hl2) {
     hls = [];
-    if (hl1) {hls.push(hl1)};
-    if (hl2) {hls.push(hl2)};
+    if (hl1 && typeof(hl1) == 'string') {hls.push(hl1)};
+    if (hl2 && typeof(hl2) == 'string') {hls.push(hl2)};
     return "#" + routes.graph.url(benchName,hls);
 });
 Handlebars.registerHelper('diffLink', function(rev1, rev2) {
