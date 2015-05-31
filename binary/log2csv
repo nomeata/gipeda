@@ -1,0 +1,31 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use File::Basename;
+use File::Slurp;
+use JSON;
+use IPC::Run qw/run/;
+
+for my $filename (@ARGV) {
+        my $log = read_file($filename);
+
+	if ($log =~ m!C memory throughput benchmarks:\n1000MB of bytes written in .*? at: ([0-9.]+?)MB/s\n1000MB of bytes read    in .*? at: ([0-9.]+?)MB/s\n1000MB of words written in .*? at: ([0-9.]+?)MB/s\n1000MB of words read    in .*? at: ([0-9.]+?)MB/s!sm) {
+		print "throughput/bytes/written/C;$1\n";
+		print "throughput/bytes/read/C;$2\n";
+		print "throughput/words/written/C;$3\n";
+		print "throughput/words/read/C;$4\n";
+	}
+
+
+	if ($log =~ m!Haskell memory throughput benchmarks:\n1000MB of bytes written in .*? at: ([0-9.]+?)MB/s\n1000MB of bytes read    in .*? at: ([0-9.]+?)MB/s\n1000MB of words written in .*? at: ([0-9.]+?)MB/s\n1000MB of words read    in .*? at: ([0-9.]+?)MB/s!sm) {
+		print "throughput/bytes/written/Haskell;$1\n";
+		print "throughput/bytes/read/Haskell;$2\n";
+		print "throughput/words/written/Haskell;$3\n";
+		print "throughput/words/read/Haskell;$4\n";
+	}
+
+
+
+}
