@@ -46,7 +46,6 @@ executable gipeda
     BenchmarksInCSV,
     BenchNames,
     GraphReport,
-    IndexReport,
     JsonSettings,
     JsonUtils,
     ParentMap,

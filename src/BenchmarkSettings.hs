@@ -88,6 +88,7 @@ data Settings = Settings
    , logLink :: Maybe String
    , limitRecent :: Integer
    , start :: String
+   , interestingTags :: Maybe String
    , benchSettings :: BenchName -> BenchSettings
    }
 
@@ -98,6 +99,7 @@ instance FromJSON Settings where
                  <*> v .:? "logLink"
                  <*> v .: "limitRecent"
                  <*> v .: "start"
+                 <*> v .:? "interestingTags"
                  <*> (unS <$> v.: "benchmarks")
     parseJSON _ = mzero
 

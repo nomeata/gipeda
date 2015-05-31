@@ -195,6 +195,55 @@ html {
   </table>
 </script>
 
+<script id="tags"  type="text/x-handlebars-template">
+  <h2>Tags</h2>
+  <table class="table tag-table">
+   {{#each tags}}
+     {{#with (lookup ../revisions this)}}
+      {{#with this.summary}}
+      <tr
+       class="
+	 tag-row
+	 {{#if stats.improvementCount}}summary-improvement{{/if}}
+	 {{#if stats.regressionCount}}summary-regression{{/if}}
+       ">
+       <td class="col-md-2 text-right">
+	 <abbrv class="timeago" title="{{ iso8601 this.gitDate }}">{{ humanDate this.gitDate}}</abbrv>
+       </td>
+       <td class="col-md-1">
+	<a href="{{revisionLink hash}}">
+	  <code>{{shortRev hash}}</code>
+	</a>
+       </td>
+       <td class="col-md-7">
+	 <strong>{{ @key }}</strong>
+	 {{ gitSubject }}
+       </td>
+       <td class="col-md-2 text-right">
+	{{> summary-icons stats}}
+       </td>
+      </tr>
+      {{/with}}
+     {{else}}
+      <tr
+       title="This tag has not been benchmarked yet"
+       class="tag-row">
+       <td class="col-md-2 text-right">
+       </td>
+       <td class="col-md-1">
+	  <code>{{shortRev this}}</code>
+       </td>
+       <td class="col-md-7">
+	 {{ @key }}
+       </td>
+       <td class="col-md-2 text-right">
+       </td>
+      </tr>
+     {{/with}}
+   {{/each}}
+  </table>
+</script>
+
 <script id="revTooltip" type="text/x-handlebars-template">
  <a href="{{revisionLink hash}}"><code>{{shortRev hash}}</code></a>:
  {{ value }}<br/>
@@ -274,6 +323,7 @@ html {
  <div class="container">
   <h1>Recent commits</h1>
   {{> summary-list (recentCommits revisions)}}
+  {{> tags }}
  </div>
  <div class="container">
   <p class="text-center">
@@ -287,6 +337,7 @@ html {
  <div class="container">
   <h1>All commits</h1>
   {{> summary-list (allCommits revisions)}}
+  {{> tags }}
  </div>
 </script>
 

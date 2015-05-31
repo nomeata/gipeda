@@ -12,7 +12,10 @@ import Data.Functor
 import Data.List
 import System.IO.Extra (newTempFile)
 import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy as LBS
 import qualified System.Directory
+import Data.Aeson
+import qualified Data.Text as T
 
 import Development.Shake.Gitlib
 
@@ -20,6 +23,7 @@ import Paths hiding (Hash)
 import ParentMap
 import BenchmarksInCSV
 import qualified BenchmarkSettings as S
+import JsonUtils
 
 {- Global settings -}
 cGRAPH_HISTORY :: Integer
@@ -150,6 +154,18 @@ shakeMain = do
            Nothing ->
                 fail "Head has no parent with logs?"
 
+    "site/out/tags.txt" *> \ out -> do
+        alwaysRerun
+
+        need ["settings.yaml"]
+        s <- liftIO $ S.readSettings "settings.yaml"
+        case S.interestingTags s of
+            Nothing ->
+                writeFileChanged out ""
+            Just pattern -> do
+                Stdout tags <- git "tag" ["-l", pattern]
+                writeFileChanged out tags
+
     "graphs" ~> do
         [latest] <- readFileLines "site/out/latest.txt"
         need [resultsOf latest]
@@ -204,11 +220,26 @@ shakeMain = do
 
     "site/out/latest-summaries.json" *> \out -> do
         [latest] <- readFileLines "site/out/latest.txt"
-        r <- recent cGRAPH_HISTORY latest
-        need (map summaryOf r)
+        recentCommits <- recent cGRAPH_HISTORY latest
 
-        Stdout json <- self "IndexReport" r
-        writeFile' out json
+        tags <- readFileLines "site/out/tags.txt"
+        tagsAndHashes <- forM tags $ \t -> do
+            h <- getGitReference "repository" ("refs/tags/" ++ t)
+            return $ (t, h)
+        let o = object [ T.pack "tags" .= object [ (T.pack t .= h) | (t,h) <- tagsAndHashes ]]
+        liftIO $ LBS.writeFile out (encode o)
+        tagCommits <- filterM (doesLogExist logSource) (map snd tagsAndHashes)
+
+        let revs = nub $ recentCommits ++ tagCommits
+
+        need $ map summaryOf revs
+
+        g <- forM revs $ \rev -> do
+            json <- liftIO $ LBS.readFile (summaryOf rev)
+            case eitherDecode json of
+                Left e -> fail e
+                Right rep -> return (rep :: Value)
+        liftIO $ LBS.writeFile out (encode (merges (o:g)))
     want ["site/out/latest-summaries.json"]
 
     "site/out/graph-summaries.json" *> \out -> do
@@ -237,11 +268,15 @@ shakeMain = do
         range <- gitRange
         Stdout range <- git "log" ["--format=%H",range]
         let hashes = words range
-        withLogs <- filterM (doesLogExist logSource) hashes
-        need (map summaryOf withLogs)
+        revs <- filterM (doesLogExist logSource) hashes
+        need (map summaryOf revs)
 
-        Stdout json <- self "IndexReport" withLogs
-        writeFile' out json
+        g <- forM revs $ \rev -> do
+            json <- liftIO $ LBS.readFile (summaryOf rev)
+            case eitherDecode json of
+                Left e -> fail e
+                Right rep -> return (rep :: Value)
+        liftIO $ LBS.writeFile out (encode (merges g))
     want ["site/out/all-summaries.json"]
 
     "site/out/settings.json" *> \out -> do

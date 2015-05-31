@@ -8,7 +8,6 @@ import JsonSettings
 import RevReport
 import WithLatestLogs
 import Summary
-import IndexReport
 import GraphReport
 import BenchNames
 import GraphSummaries
@@ -35,7 +34,6 @@ main = do
 
 
     case args of 
-        "IndexReport":opts    -> indexReportsMain opts
         "JsonSettings":_      -> jsonSettingsMain
         "Summary":opts        -> summaryMain opts
         "RevReport":opts      -> revReportMain opts

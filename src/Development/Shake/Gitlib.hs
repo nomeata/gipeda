@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings, DeriveDataTypeable, GeneralizedNewtypeDeriving, MultiParamTypeClasses, FlexibleInstances #-}
 module Development.Shake.Gitlib
     ( defaultRuleGitLib
+    , getGitReference
     , getGitContents
     , doesGitFileExist
     , readGitFile
@@ -43,6 +44,11 @@ instance Rule GetGitFileRefQ (Maybe T.Text) where
     storedValue _ (GetGitFileRefQ (repoPath, name, filename)) = do
         ref' <- getGitReference' repoPath name
         Just <$> getGitFileRef' repoPath ref' filename
+
+getGitReference :: RepoPath -> String -> Action String
+getGitReference repoPath refName = do
+    GitSHA ref' <- apply1 $ GetGitReferenceQ (repoPath, T.pack refName)
+    return $ T.unpack ref'
 
 getGitContents :: RepoPath -> Action [FilePath]
 getGitContents repoPath = do

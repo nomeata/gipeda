@@ -146,7 +146,7 @@ $(function ()  {
     templates[id] = Handlebars.compile(source);
   });
 
-  var partials_ids =  ["nav", "summary-icons", "summary-list", "nothing"];
+  var partials_ids =  ["nav", "summary-icons", "summary-list", "nothing", "tags"];
   partials_ids.forEach(function(id) {
     var source = $("#" + id).html();
     Handlebars.registerPartial(id, source);

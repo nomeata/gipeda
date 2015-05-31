@@ -3,6 +3,7 @@ cgitLink: https://git.haskell.org/ghc.git
 logLink: https://raw.githubusercontent.com/nomeata/ghc-speed-logs/master/{{rev}}.log
 limitRecent: 50
 start: 55e7ab1210975e6276f3cab3ac0e1f35bcd772f0
+interestingTags: "*-release"
 
 benchmarks:
   - match: "*"
