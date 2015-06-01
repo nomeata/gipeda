@@ -60,10 +60,19 @@ getGitContents repoPath = do
         entries <- listTreeEntries tree
         return $ map (BS.unpack . fst) entries
 
+-- Will also look through annotated tags
 getGitReference' :: RepoPath -> RefName -> IO T.Text
 getGitReference' repoPath refName = do
     withRepository lgFactory repoPath $ do
         Just ref <- resolveReference refName
+        {-
+        This fails (https://github.com/jwiegley/gitlib/issues/49)
+        o <- lookupObject ref
+        r <- case o of
+            TagObj t -> do
+                return $ renderObjOid $ tagCommit t
+            _ -> return $ renderOid ref
+        -}
         return $ renderOid ref
 
 getGitFileRef' :: RepoPath -> T.Text -> FilePath -> IO (Maybe T.Text)
