@@ -84,7 +84,7 @@ instance FromJSON S where
 
 data Settings = Settings
    { title :: String
-   , cgitLink :: String
+   , diffLink :: String
    , logLink :: Maybe String
    , limitRecent :: Integer
    , start :: String
@@ -95,7 +95,7 @@ data Settings = Settings
 instance FromJSON Settings where
     parseJSON (Object v) =
         Settings <$> v .: "title"
-                 <*> v .: "cgitLink"
+                 <*> v .: "diffLink"
                  <*> v .:? "logLink"
                  <*> v .: "limitRecent"
                  <*> v .: "start"

@@ -1,5 +1,5 @@
 title: GHC Speed
-cgitLink: https://git.haskell.org/ghc.git
+diffLink: https://git.haskell.org/ghc.git/commitdiff/{{rev}}
 logLink: https://raw.githubusercontent.com/nomeata/ghc-speed-logs/master/{{rev}}.log
 limitRecent: 50
 start: 55e7ab1210975e6276f3cab3ac0e1f35bcd772f0

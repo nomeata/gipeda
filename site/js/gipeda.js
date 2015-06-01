@@ -170,7 +170,7 @@ Handlebars.registerHelper('graphLink', function(benchName, hl1, hl2) {
     return "#" + routes.graph.url(benchName,hls);
 });
 Handlebars.registerHelper('diffLink', function(rev1, rev2) {
-  return data.settings.cgitLink + "/commitdiff/" + rev2
+    return Handlebars.compile(data.settings.diffLink)({base: rev1, rev: rev2});
 });
 Handlebars.registerHelper('logLink', function(rev, options) {
   if (data.settings.logLink) {

@@ -16,7 +16,7 @@ import qualified BenchmarkSettings as S
 
 data ClientSettings = ClientSettings
    { title :: String
-   , cgitLink :: String
+   , diffLink :: String
    , logLink :: String
    }
  deriving (Generic)
