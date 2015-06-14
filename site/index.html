@@ -11,6 +11,8 @@
 <script type="text/javascript" src="js/handlebars-v2.0.0.js"></script>
 <script src="js/jquery-1.11.2.min.js"></script>
 <script src="js/jquery.timeago.js"></script>
+<script src="js/jquery-ui/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="js/jquery-ui/jquery-ui.min.css">
 
 <script src="js/flot/jquery.flot.min.js"></script>
 <script src="js/flot/jquery.flot.resize.min.js"></script>
@@ -110,18 +112,24 @@ html {
     <div class="navbar-header pull-right">
       <p class="navbar-text nav-loading pull-left">Loading data...</p>
 
+      <div class="navbar-text nav-compare" role="group">
+       <a id="go-to-compare" href="#" class="navbar-link">
+        <code>
+         <span title="Drop a revision id to compare two revisions" id="compare-from">???????</span>..<span title="Drop a revision id to compare two revisions" id="compare-to">???????</span>
+         </code>
+       </a>
+      </div>
+
       <ul class="nav pull-left">
        <li class="pull-left">
 	<div class="btn-group" role="group">
 	 <button type="button" class="btn btn-default navbar-btn active benchSelector" id="show-improvements" title="Show improvements">
-	  <!-- <span class="glyphicon glyphicon-plus text-success"></span> -->
 	  <span class="text-success" style="font-weight:bold">+</span>
 	 </button>
 	 <button type="button" class="btn btn-default navbar-btn benchSelector" id="show-boring" title="Show unchanged">
 	  <span style="font-weight:bold">=</span>
 	 </button>
 	 <button type="button" class="btn btn-default navbar-btn active benchSelector" id="show-regressions" title="Show regressions">
-	  <!-- <span class="glyphicon glyphicon-minus text-warning"></span> -->
 	  <span class="text-warning" style="font-weight:bold">-</span>
 	 </button>
 	</div>
@@ -146,6 +154,11 @@ html {
   </div>
  </nav>
 </script>
+
+<script id="rev-id" type="text/x-handlebars-template">
+  <code data-rev="{{hash}}" class="rev-draggable">{{shortRev hash}}</code>
+</script>
+
 
 <script id="summary-icons"  type="text/x-handlebars-template">
   <span title="{{id summaryDesc}}">
@@ -180,7 +193,7 @@ html {
      </td>
      <td class="col-md-1">
       <a href="{{revisionLink hash}}">
-        <code>{{shortRev hash}}</code>
+        {{> rev-id hash=hash}}
       </a>
      </td>
      <td class="col-md-7">
@@ -207,7 +220,7 @@ html {
        </td>
        <td class="col-md-1">
 	<a href="{{revisionLink hash}}">
-	  <code>{{shortRev hash}}</code>
+          {{> rev-id hash=hash}}
 	</a>
        </td>
        <td class="col-md-1">
@@ -225,7 +238,7 @@ html {
        <td class="col-md-2 text-right">
        </td>
        <td class="col-md-1">
-	  <code>{{shortRev this}}</code>
+          {{> rev-id hash=this}}
        </td>
        <td class="col-md-7">
 	 {{ @key }}
@@ -239,7 +252,9 @@ html {
 </script>
 
 <script id="revTooltip" type="text/x-handlebars-template">
- <a href="{{revisionLink hash}}"><code>{{shortRev hash}}</code></a>:
+ <a href="{{revisionLink hash}}">
+  {{> rev-id hash=this}}
+ </a>:
  {{ value }}<br/>
  {{ humanDate gitDate}}<br/>
  {{ gitSubject }}</br>
@@ -348,9 +363,11 @@ html {
     </h2>
     <p>
     {{#if rev.summary.parents}}
-    Displaying changes since:  
+    Displaying changes since:
     {{#with (lookup rev.summary.parents 0)}}
-      <a href="{{revisionLink this}}"><code>{{shortRev this}}</code></a> – 
+      <a href="{{revisionLink this}}">
+	{{> rev-id hash=this}}
+      </a> –
       <a href="{{diffLink this ../rev.summary.hash}}">View diff</a>
     {{/with}} –
     {{#logLink rev.summary.hash }}
@@ -441,14 +458,14 @@ html {
     {{#if rev1.summary}}{{#if rev2.summary}}
     <h2>
      Comparing
-      <code>{{shortRev rev1.summary.hash}}</code>..<code>{{shortRev rev2.summary.hash}}</code>
+      {{> rev-id hash=rev1.summary.hash}}..{{> rev-id hash=rev2.summary.hash}}
     </h2>
     <p>
      Parents:
      {{#each rev1.summary.parents}}
       <a href="{{compareLink this ../rev2.summary.hash}}">{{shortRev this}}</a>
      {{/each}}</br>
-      <a href="{{revisionLink rev1.summary.hash}}"><code>{{shortRev rev1.summary.hash}}</code></a> <abbrv class="timeago" title="{{ iso8601 gitDate }}">{{ humanDate rev1.summary.gitDate}}</abbrv>:<br/>
+      <a href="{{revisionLink rev1.summary.hash}}">{{> rev-id hash=rev1.summary.hash}}</a> <abbrv class="timeago" title="{{ iso8601 gitDate }}">{{ humanDate rev1.summary.gitDate}}</abbrv>:<br/>
      <strong>{{ rev1.summary.gitSubject }}</strong><br/>
      {{#logLink rev1.summary.hash }}
       <a href="{{link}}">buildlog</a>
@@ -464,7 +481,7 @@ html {
      {{#each rev2.summary.parents}}
       <a href="{{compareLink ../rev1.summary.hash this}}">{{shortRev this}}</a>
      {{/each}}</br>
-     <a href="{{revisionLink rev2.summary.hash}}"><code>{{shortRev rev2.summary.hash}}</code></a> <abbrv class="timeago" title="{{ iso8601 gitDate }}">{{ humanDate rev2.summary.gitDate}}</abbrv>:<br/>
+      <a href="{{revisionLink rev2.summary.hash}}">{{> rev-id hash=rev2.summary.hash}}</a> <abbrv class="timeago" title="{{ iso8601 gitDate }}">{{ humanDate rev2.summary.gitDate}}</abbrv>:<br/>
      <strong>{{ rev2.summary.gitSubject }}</strong><br/>
      {{#logLink rev2.summary.hash }}
       <a href="{{link}}">buildlog</a>

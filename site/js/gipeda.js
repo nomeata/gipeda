@@ -146,7 +146,7 @@ $(function ()  {
     templates[id] = Handlebars.compile(source);
   });
 
-  var partials_ids =  ["nav", "summary-icons", "summary-list", "nothing", "tags"];
+  var partials_ids =  ["nav", "summary-icons", "summary-list", "rev-id", "nothing", "tags"];
   partials_ids.forEach(function(id) {
     var source = $("#" + id).html();
     Handlebars.registerPartial(id, source);
@@ -412,6 +412,16 @@ dataViewPrepare = {
   },
 }
 
+function current_compare_link () {
+    var rev1 = $('#compare-from').data('rev');
+    var rev2 = $('#compare-to').data('rev');
+    if (rev1 && rev2) {
+	return "#" + routes.compare.url(rev1, rev2);
+    } else {
+	return 'javascript:alert("Please drag two revisions here to compare them")';
+    }
+}
+
 function load_template () {
     console.log('Rebuilding page');
     var context = {};
@@ -427,15 +437,32 @@ function load_template () {
     updateCollapsedGroups();
     $('abbrv.timeago').timeago();
 
+    // Code to implement the compare-revision-drag'n'drop interface
+    $('.rev-draggable').draggable({
+        revert: true,
+	revertDuration: 0,
+    });
+    $('#compare-from, #compare-to').droppable({
+	accept: ".rev-draggable",
+        activeClass: "ui-state-highlight",
+        hoverClass: "ui-state-active",
+        drop: function( event, ui ) {
+          $( this ).text(ui.draggable.text());
+          $( this ).data('rev',ui.draggable.data('rev'));
+	  $('#go-to-compare').attr('href',current_compare_link());
+      }
+    });
+    $('#go-to-compare').attr('href',current_compare_link());
+
     if ($('#benchChart').length) {
-    	setupChart();
+	setupChart();
     }
 }
 viewChanged.add(load_template);
 dataChanged.add(load_template);
 
 function setupChart () {
-    
+
     var commits = commitsFrom(data.revisions, data.latest, data.settings.limitRecent);
     var benchName = viewData.benchName;
 
