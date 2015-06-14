@@ -12,7 +12,11 @@ var settings = {
 	boring: false,
 	regressions: true,
     },
-    collapsedGroups: [true, false, false, false]
+    collapsedGroups: [true, false, false, false],
+    compare: {
+	from: null,
+	to: null,
+    }
 };
 
 // Signals
@@ -412,9 +416,26 @@ dataViewPrepare = {
   },
 }
 
+function remember_from_to() {
+    settings.compare.from = $('#compare-from').data('rev');
+    settings.compare.to = $('#compare-to').data('rev');
+}
+
+function recall_from_to() {
+    if (settings.compare.from) {
+	$('#compare-from').data('rev', settings.compare.from);
+	$('#compare-from').text(shortRev(settings.compare.from));
+    }
+    if (settings.compare.to) {
+	$('#compare-to').data('rev', settings.compare.to);
+	$('#compare-to').text(shortRev(settings.compare.to));
+    }
+    $('#go-to-compare').attr('href',current_compare_link());
+}
+
 function current_compare_link () {
-    var rev1 = $('#compare-from').data('rev');
-    var rev2 = $('#compare-to').data('rev');
+    var rev1 = settings.compare.from;
+    var rev2 = settings.compare.to;
     if (rev1 && rev2) {
 	return "#" + routes.compare.url(rev1, rev2);
     } else {
@@ -449,10 +470,11 @@ function load_template () {
         drop: function( event, ui ) {
           $( this ).text(ui.draggable.text());
           $( this ).data('rev',ui.draggable.data('rev'));
+	  remember_from_to();
 	  $('#go-to-compare').attr('href',current_compare_link());
       }
     });
-    $('#go-to-compare').attr('href',current_compare_link());
+    recall_from_to();
 
     if ($('#benchChart').length) {
 	setupChart();
