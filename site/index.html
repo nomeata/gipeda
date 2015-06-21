@@ -12,6 +12,7 @@
 <script src="js/jquery-1.11.2.min.js"></script>
 <script src="js/jquery.timeago.js"></script>
 <script src="js/jquery-ui/jquery-ui.min.js"></script>
+<script src="js/naturalSort.js"></script>
 <link rel="stylesheet" href="js/jquery-ui/jquery-ui.min.css">
 
 <script src="js/flot/jquery.flot.min.js"></script>
@@ -211,7 +212,7 @@ html {
 <script id="tags"  type="text/x-handlebars-template">
   <h2>Tags</h2>
   <table class="table tag-table">
-   {{#each tags}}
+   {{#each_unnaturally tags}}
      {{#with (lookup ../revisions this)}}
       {{#with this.summary}}
       <tr class="tag-row">
@@ -247,7 +248,7 @@ html {
        </td>
       </tr>
      {{/with}}
-   {{/each}}
+   {{/each_unnaturally}}
   </table>
 </script>
 

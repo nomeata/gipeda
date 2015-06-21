@@ -216,6 +216,31 @@ Handlebars.registerHelper('iso8601', function(timestamp) {
 Handlebars.registerHelper('humanDate', function(timestamp) {
   return new Date(timestamp*1000).toString();
 });
+// inspired by http://stackoverflow.com/a/17935019/946226
+Handlebars.registerHelper('each_naturally', function(context,options){
+    var output = '';
+    if (context) {
+	console.log(context);
+	var keys = jQuery.map(context, function(v,k) {return k});
+	var sorted_keys = keys.sort(naturalSort);
+	sorted_keys.map(function (k,i) {
+	    output += options.fn(context[k], {data: {key: k, index: i}});
+	});
+    }
+    return output;
+});
+Handlebars.registerHelper('each_unnaturally', function(context,options){
+    var output = '';
+    if (context) {
+	console.log(context);
+	var keys = jQuery.map(context, function(v,k) {return k});
+	var sorted_keys = keys.sort(naturalSort).reverse();
+	sorted_keys.map(function (k,i) {
+	    output += options.fn(context[k], {data: {key: k, index: i}});
+	});
+    }
+    return output;
+});
 
 // We cache everything
 var jsonSeen = {};
