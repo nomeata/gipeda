@@ -1,5 +1,7 @@
 // Main document
-var data = {};
+var data = {
+    settings: {},
+};
 // Name of the current view
 var view = 'index';
 // Options of the current view
@@ -23,6 +25,7 @@ var settings = {
 
 viewChanged = new signals.Signal()
 dataChanged = new signals.Signal()
+settingsChanged = new signals.Signal()
 
 
 // Routes
@@ -119,7 +122,9 @@ function handleHashChange(newHash) {
 
 // Data
 
-function commitsFrom(revs, hash, count) {
+function commitsFrom(hash, count) {
+  revs = data.revisions;
+
   // Can happen during loading
   if (!revs) {return []};
 
@@ -128,7 +133,7 @@ function commitsFrom(revs, hash, count) {
   var rev = revs[hash];
   if (rev) {
     if (rev.summary.parents.length > 0) {
-      var later = commitsFrom(revs, rev.summary.parents[0], count - 1);
+      var later = commitsFrom(rev.summary.parents[0], count - 1);
       later.unshift(rev);
       return later;
     } else {
@@ -141,6 +146,7 @@ function commitsFrom(revs, hash, count) {
 
 
 // Template handling
+/*
 var templates = {};
 
 $(function ()  {
@@ -157,65 +163,61 @@ $(function ()  {
   });
 
 });
+*/
 
-Handlebars.registerHelper('revisionLink', function(hash) {
+// Template helpers
+
+function revisionLink(hash) {
   if (!hash) { return "#"; }
   return "#" + routes.revision.url(hash);
-});
-Handlebars.registerHelper('compareLink', function(hash1,hash2) {
+}
+function compareLink(hash1,hash2) {
   if (!hash1) { return "#"; }
   if (!hash2) { return "#"; }
   return "#" + routes.compare.url(hash1,hash2);
-});
-Handlebars.registerHelper('graphLink', function(benchName, hl1, hl2) {
+}
+function graphLink(benchName, hl1, hl2) {
     hls = [];
     if (hl1 && typeof(hl1) == 'string') {hls.push(hl1)};
     if (hl2 && typeof(hl2) == 'string') {hls.push(hl2)};
     return "#" + routes.graph.url(benchName,hls);
-});
-Handlebars.registerHelper('diffLink', function(rev1, rev2) {
-    return Handlebars.compile(data.settings.diffLink)({base: rev1, rev: rev2});
-});
-Handlebars.registerHelper('logLink', function(rev, options) {
+}
+function diffLink(rev1, rev2) {
+    return "TODO"; /* Handlebars.compile(data.settings.diffLink)({base: rev1, rev: rev2}); */
+}
+function logLink(rev, options) {
   if (data.settings.logLink) {
     var link = Handlebars.compile(data.settings.logLink)({rev: rev});
     $.extend(this,{link:link});
     return options.fn(this);
   }
-});
-Handlebars.registerHelper('indexLink', function() {
+}
+function indexLink() {
   return "#" + routes.index.url();
-});
-Handlebars.registerHelper('allLink', function() {
+}
+function allLink() {
   return "#" + routes.complete.url();
-});
-Handlebars.registerHelper('graphIndexLink', function() {
+}
+function graphIndexLink() {
   return "#" + routes.graphIndex.url();
-});
-Handlebars.registerHelper('recentCommits', function(revisions) {
-  return commitsFrom(revisions, data.latest, data.settings.limitRecent);
-});
-Handlebars.registerHelper('allCommits', function(revisions) {
-  return commitsFrom(revisions, data.latest, -1);
-});
+}
+function recentCommits() {
+  return commitsFrom(data.latest, data.settings.limitRecent);
+}
+function allCommits() {
+  return commitsFrom(data.latest, -1);
+}
 function shortRev(rev) {
   if (!rev) { return ''; }
   return rev.substr(0,7);
 }
-Handlebars.registerHelper('shortRev', shortRev);
-Handlebars.registerHelper('id', function (text) {
-    if (text) {
-	lines = text.split(/\r?\n/);
-	return new Handlebars.SafeString(lines.map(Handlebars.escapeExpression).join('&#10;'))
-    }
-});
-Handlebars.registerHelper('iso8601', function(timestamp) {
+function iso8601(timestamp) {
   if (!timestamp) { return '' };
   return new Date(timestamp*1000).toISOString();
-});
-Handlebars.registerHelper('humanDate', function(timestamp) {
+}
+function humanDate(timestamp) {
   return new Date(timestamp*1000).toString();
-});
+}
 
 // We cache everything
 var jsonSeen = {};
@@ -416,32 +418,6 @@ dataViewPrepare = {
   },
 }
 
-function remember_from_to() {
-    settings.compare.from = $('#compare-from').data('rev');
-    settings.compare.to = $('#compare-to').data('rev');
-}
-
-function recall_from_to() {
-    if (settings.compare.from) {
-	$('#compare-from').data('rev', settings.compare.from);
-	$('#compare-from').text(shortRev(settings.compare.from));
-    }
-    if (settings.compare.to) {
-	$('#compare-to').data('rev', settings.compare.to);
-	$('#compare-to').text(shortRev(settings.compare.to));
-    }
-    $('#go-to-compare').attr('href',current_compare_link());
-}
-
-function current_compare_link () {
-    var rev1 = settings.compare.from;
-    var rev2 = settings.compare.to;
-    if (rev1 && rev2) {
-	return "#" + routes.compare.url(rev1, rev2);
-    } else {
-	return 'javascript:alert("Please drag two revisions here to compare them")';
-    }
-}
 
 function load_template () {
     console.log('Rebuilding page');
@@ -458,37 +434,20 @@ function load_template () {
     updateCollapsedGroups();
     $('abbrv.timeago').timeago();
 
-    // Code to implement the compare-revision-drag'n'drop interface
-    $('.rev-draggable').draggable({
-        revert: true,
-	revertDuration: 0,
-    });
-    $('#compare-from, #compare-to').droppable({
-	accept: ".rev-draggable",
-        activeClass: "ui-state-highlight",
-        hoverClass: "ui-state-active",
-        drop: function( event, ui ) {
-          $( this ).text(ui.draggable.text());
-          $( this ).data('rev',ui.draggable.data('rev'));
-	  remember_from_to();
-	  $('#go-to-compare').attr('href',current_compare_link());
-      }
-    });
-    recall_from_to();
 
     if ($('#benchChart').length) {
 	setupChart();
     }
 }
-viewChanged.add(load_template);
-dataChanged.add(load_template);
+// viewChanged.add(load_template);
+// dataChanged.add(load_template);
 
 function setupChart () {
 
-    var commits = commitsFrom(data.revisions, data.latest, data.settings.limitRecent);
+    var commits = commitsFrom(data.latest, data.settings.limitRecent);
     var benchName = viewData.benchName;
 
-    $("<div id='tooltip' class='panel alert-info'></div>").css({
+    $("<div id='tooltip' className='panel alert-info'></div>").css({
 		position: "absolute",
 		display: "none",
 		//border: "1px solid #fdd",
@@ -667,10 +626,11 @@ $(function (){
         $(this).toggleClass('active');
 	settings.benchFilter = {
 	    regressions:  $('#show-regressions').hasClass('active'),
-	    boring:       $('#show-boring').hasClass('active'), 
-	    improvements: $('#show-improvements').hasClass('active'), 
+	    boring:       $('#show-boring').hasClass('active'),
+	    improvements: $('#show-improvements').hasClass('active'),
 	};
-        updateBenchFilter();
+        //updateBenchFilter();
+        settingsChanged.dispatch()
     });
 });
 
@@ -682,12 +642,448 @@ function goTo(path) {
 }
 
 
+// The gipeda react app
+
+var SummaryIcons = React.createClass({
+    render: function() {
+	return (
+	  <span title={this.props.summaryDesc}>
+	  <span>
+	   {this.props.totalCount}{' '}
+	   <span className="glyphicon glyphicon-stats"></span>{' '}
+	  </span>
+	  <span>
+	   {this.props.improvementCount}{' '}
+	   <span className="glyphicon glyphicon-plus text-success"></span>{' '}
+	  </span>
+	  <span>
+	   {this.props.regressionCount}{' '}
+	   <span className="glyphicon glyphicon-minus text-warning"></span>{' '}
+	  </span>
+	</span>);
+    },
+});
+
+var RevisionSlug = React.createClass({
+    render: function() {
+	return <code data-rev={this.props.hash} className="rev-draggable">
+	    {shortRev(this.props.hash)}
+	</code>;
+    },
+    componentDidMount: function() {
+	var elem = React.findDOMNode(this);
+	$(elem).draggable({
+	    revert: true,
+	    revertDuration: 0,
+	});
+    }
+});
+
+var RevisionLink = React.createClass({
+    render: function() {
+	return <a href={revisionLink(this.props.hash)}>
+	    <RevisionSlug hash={this.props.hash}/>
+	</a>;
+    },
+});
+
+var TimeAgo = React.createClass({
+    render: function() {
+	var date = this.props.date;
+	var ago = jQuery.timeago(iso8601(date));
+	return <abbrv title={humanDate(date)}>{ago}</abbrv>;
+    },
+    /*
+    componentDidMount: function() {
+	this.intervalID = window.setInterval(this.forceUpdate.bind(this), 1000);
+    },
+    componentWillUnmount: function() {
+	clearInterval(this.intervalID);
+    },
+    */
+})
+
+var SummaryRow = React.createClass({
+    render: function() {
+	var hash = this.props.hash;
+	var rev = data.revisions[hash];
+	var first = this.props.listIndex == 0;
+
+	var improvement = rev.summary.stats.improvementCount > 0;
+	var regression = rev.summary.stats.regressionCount > 0;
+	var boring = ! improvement && ! regression;
+
+	var show_it =
+	    improvement && settings.benchFilter.improvements ||
+	    regression  && settings.benchFilter.regressions ||
+	    boring      && settings.benchFilter.boring ||
+	    first;
+
+	return (<tr className={classNames('summary-row',
+		{ 'summary-improvement': improvement,
+		  'summary-regression': regression,
+		  'summary-row-collapsed': !show_it})}>
+	     <td className="col-md-2 text-right">
+	       <TimeAgo date={rev.summary.gitDate}/>
+	     </td>
+	     <td className="col-md-1">
+	      <RevisionLink hash={hash}/>
+	     </td>
+	     <td className="col-md-7">
+	       { rev.summary.gitSubject }
+	     </td>
+	     <td className="col-md-2 text-right">
+	      <SummaryIcons {...(rev.summary.stats)}/>
+	     </td>
+	    </tr>);
+    },
+});
+
+var SummaryList = React.createClass({
+    render: function() {
+	return <div>
+	    {/* <Nothing/> */}
+	    <table className="table summary-table">
+	      <tbody>
+		{this.props.hashes.map(function(h,i) {
+		    return <SummaryRow key={h} hash={h} listIndex={i}/>;
+		})}
+	      </tbody>
+	    </table>
+	</div>
+    },
+});
+
+var TagRow = React.createClass({
+    render: function() {
+	var tag = this.props.tag;
+	var hash = this.props.hash;
+	var rev = data.revisions[hash];
+
+	if (rev) {
+	    return (<tr className="tag-row">
+		 <td className="col-md-2 text-right">
+		   <TimeAgo date={rev.summary.gitDate}/>
+		 </td>
+		 <td className="col-md-1">
+		  <RevisionLink hash={hash}/>
+		 </td>
+		 <td className="col-md-2">
+		   <strong>{ tag }</strong>
+		 </td>
+		 <td className="col-md-7">
+		   { rev.summary.gitSubject }
+		 </td>
+		</tr>);
+	} else {
+	    return (<tr className="tag-row" title="This tag has not been benchmarked yet">
+		 <td className="col-md-2 text-right">
+		 </td>
+		 <td className="col-md-1">
+		  <RevisionLink hash={hash}/>
+		 </td>
+		 <td className="col-md-2">
+		   { tag }
+		 </td>
+		 <td className="col-md-7">
+		 </td>
+		</tr>);
+	}
+    },
+});
+
+
+var TagList = React.createClass({
+    render: function() {
+	var tags = data.tags;
+	if (!tags) { tags = [] };
+	return <div>
+	    <h2>Tags</h2>
+	    <table className="table tag-table">
+	      <tbody>
+		{jQuery.map(tags, function(h,t) {
+		    return <TagRow key={t} tag={t} hash={h}/>;
+		})}
+	      </tbody>
+	    </table>
+	</div>
+    },
+});
+
+
+// The components for each route
+views = {
+    'index': React.createClass({
+	render: function() {
+	    return (<div>
+	     <div className="container">
+	      <h1>Recent commits</h1>
+	      <SummaryList hashes={recentCommits().map(function (c){return c.summary.hash;})}/>
+	      <TagList/>
+	     </div>
+	     <div className="container">
+	      <p className="text-center">
+		<a href={allLink()}>view older commits...</a>
+	      </p>
+	     </div>
+	    </div>);
+	}
+    }),
+    'revision': React.createClass({
+	render: function() {
+	    if (!data.benchGroups || !data.revisions) return null;
+	    var hash = viewData.hash;
+	    var rev = data.revisions[hash];
+	    if (!rev) return null;
+	    if (!rev.benchResults) return null;
+	    if (!rev.summary) return null;
+
+	    var groups = data.benchGroups.map(function (group) {
+	      var benchmarks = group.groupMembers.map(function (bn) {
+		return rev.benchResults[bn]
+	      }).filter(function (br) {return br});
+	      return {
+		groupName: group.groupName,
+		benchResults: benchmarks,
+		groupStats: groupStats(benchmarks),
+	      };
+	    });
+
+	    var parentInfo;
+	    if (rev.summary.parents) {
+		parentInfo = (<span>
+		  Displaying changes since: <RevisionLink hash={rev.summary.parents[0]}/>
+		  &nbsp;– &nbsp;
+		  <a href={diffLink(rev.summary.parents[0], hash)}>View diff</a>
+	        </span>);
+	    } else {
+		parentInfo = 'No parent commit found';
+	    }
+
+	    return (
+	     <div className="container">
+	      <div className="row">
+	       <div className="col-md-6 col-md-push-6">
+		<h2>
+		 Commit {shortRev(rev.summary.hash)}
+		</h2>
+		<p>{parentInfo}&nbsp;–&nbsp;
+		{/*
+		{{#logLink rev.summary.hash }}
+		  <a href="{{link}}">View buildlog</a> –
+		{{/logLink}}
+	        */}
+		<SummaryIcons {...rev.summary.stats} />
+		</p>
+		<pre>{rev.gitLog}</pre>
+	       </div>
+
+	       <div className="col-md-6 col-md-pull-6">
+	        {/*
+		{{> nothing }}
+		*/}
+		<div className="panel-group" role="tablist">
+		 {groups.map(function (g, i) { return (
+		  <div key={g.groupName} className="panel panel-default bench-panel">
+		   <div className="panel-heading" role="tab" id={'heading-' + i}>
+		    <h4 className="panel-title">
+		     <a className="accordion-toggle" data-toggle="collapse" href={'#table-' + i}>
+		     { g.groupName }
+		     <span className="stats pull-right">
+		      <SummaryIcons {...(g.groupStats)}/>
+		      <span className="indicator-toggled glyphicon glyphicon-chevron-down text-grey"/>
+		      <span className="indicator-untoggled glyphicon glyphicon-chevron-right text-grey"/>
+		     </span>
+		     </a>
+		    </h4>
+		   </div>
+
+		   <div id={'table-' + i} className="panel-collapse collapse in" role="tabpanel">
+		    <div className="panel-body">
+		     <table className="table table-condensed benchmark-table">
+		      <thead>
+		      <tr>
+		      <th className="col-md-5">Benchmark name</th>
+		      <th className="col-md-2 text-right">previous</th>
+		      <th className="col-md-2 text-right">change</th>
+		      <th className="col-md-2 text-right">now</th>
+		      <th className="col-md-1 text-left"></th>
+		      </tr>
+		      </thead>
+		      <tbody>
+		       {g.benchResults.map(function (r) {
+		        return (
+			<tr key={r.name}
+			  className={classNames("row-result","row-"+ r.changeType)}>
+			 <td className="benchmark-name">
+			  {r.name}
+			  <a className="graph-link" title="Graphs" href={graphLink(r.name, hash)}>
+			   <span className="glyphicon glyphicon-signal"/>
+			  </a>
+			 </td>
+			 <td className="text-right">{r.previous}</td>
+			 <td className="text-right">{r.change}</td>
+			 <td className="text-right">{r.value}</td>
+			 <td className="text-left">{r.unit}</td>
+			</tr>
+		       )})}
+		      </tbody>
+		     </table>
+		    </div>
+		   </div>
+		  </div>
+		 )})}
+		</div>
+	       </div>
+	      </div>
+	     </div>);
+	},
+    }),
+};
+
+// The navigation component
+
+var BenchSelector = React.createClass({
+    render: function() {
+	var btnClasses = "btn btn-default navbar-btn benchSelector";
+	return (
+	    <div className="btn-group" role="group">
+	     <button type="button" className={classNames(btnClasses, {active: settings.benchFilter.improvements})} id="show-improvements" title="Show improvements">
+	      <span className="text-success">+</span>
+	     </button>
+	     <button type="button" className={classNames(btnClasses, {active: settings.benchFilter.boring})} id="show-boring" title="Show unchanged">
+	      <span>=</span>
+	     </button>
+	     <button type="button" className={classNames(btnClasses, {active: settings.benchFilter.regressions})} id="show-regressions" title="Show regressions">
+	      <span className="text-warning">-</span>
+	     </button>
+	    </div>
+	);
+    },
+});
+
+var DiffSelector = React.createClass({
+    render: function() {
+	var rev1 = settings.compare.from;
+	var rev2 = settings.compare.to;
+
+	var txt1 = rev1 ? shortRev(rev1) : '???????';
+	var txt2 = rev2 ? shortRev(rev2) : '???????';
+
+	var href = (rev1 && rev2) ?
+	    "#" + routes.compare.url(rev1, rev2) :
+	    'javascript:alert("Please drag two revisions here to compare them")';
+
+	return (
+	   <a id="go-to-compare" href={href} className="navbar-link">
+	    <code>
+	     <span title="Drop a revision id to compare two revisions" id="compare-from">{txt1}</span>..<span title="Drop a revision id to compare two revisions" id="compare-to">{txt2}</span>
+	     </code>
+	   </a>);
+    },
+    componentDidMount() {
+	$('#compare-from').droppable({
+	    accept: ".rev-draggable",
+	    activeClass: "ui-state-highlight",
+	    hoverClass: "ui-state-active",
+	    drop: function( event, ui ) {
+		settings.compare.from = ui.draggable.data('rev');
+		settingsChanged.dispatch()
+	    },
+	});
+	$('#compare-to').droppable({
+	    accept: ".rev-draggable",
+	    activeClass: "ui-state-highlight",
+	    hoverClass: "ui-state-active",
+	    drop: function( event, ui ) {
+		settings.compare.to = ui.draggable.data('rev');
+		settingsChanged.dispatch()
+	    },
+	});
+    }
+});
+
+var Navigation = React.createClass({
+    render: function() {
+	return (
+     <nav className="navbar navbar-default">
+       <div className="container">
+
+	{/* Inspired by http://stackoverflow.com/a/22978968/946226 */}
+	{/* Title */}
+	<div className="navbar-header pull-left">
+	  <a className="navbar-brand" href="#">{ data.settings.title }</a>
+	</div>
+
+	{/* 'Sticky' (non-collapsing) right-side menu item(s) */}
+	<div className="navbar-header pull-right">
+	  <p className="navbar-text nav-loading pull-left">Loading data...</p>
+
+	  <div className="navbar-text" role="group">
+	    <DiffSelector />
+	  </div>
+
+	  <ul className="nav pull-left">
+	   <li className="pull-left">
+	    <BenchSelector/>
+	   </li>
+	  </ul>
+
+	  {/* Required bootstrap placeholder for the collapsed menu */}
+	  <button type="button" data-toggle="collapse" data-target=".navbar-collapse" className="navbar-toggle"><span className="sr-only">Toggle navigation</span><span className="icon-bar"></span><span className="icon-bar"></span><span className="icon-bar"></span></button>
+	</div>
+
+	<div className="collapse navbar-collapse navbar-left" id="bs-example-navbar-collapse-1">
+	  <ul className="nav navbar-nav pull-right">
+	    <li><a href={indexLink()}>Revisions</a></li>
+	    <li><a href={graphIndexLink()}>Graphs</a></li>
+	  </ul>
+
+	</div>
+      </div>
+     </nav>
+    )},
+})
+
+// The main component
+var Gipeda = React.createClass({
+    getInitialState: function() {
+      return {view: view};
+    },
+    componentWillMount: function () {
+	var component = this;
+        viewChanged.add(function () {
+	    component.setState({view: view});
+        });
+        dataChanged.add(function () {
+	    component.forceUpdate();
+        });
+        settingsChanged.add(function () {
+	    component.forceUpdate();
+        });
+    },
+    render: function() {
+	var View = views[this.state.view];
+	if (View) {
+	    return <div><Navigation/><View/></div>;
+	} else {
+	    return <p>Sorry, view '{this.state.view}' is not found.</p>;
+	}
+    },
+});
+
 // Main setup
 
 $(function() {
     hasher.prependHash = '';
 
+    console.log('Gipeda starting up...');
+
     $('#loading').hide();
+
+    React.render(<Gipeda />, document.getElementById('main')
+      );
+
 
     $(document).ajaxStart(function () {
 	$(".nav-loading").show();
