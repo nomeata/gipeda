@@ -62,18 +62,20 @@ getGitContents repoPath = do
 
 -- Will also look through annotated tags
 getGitReference' :: RepoPath -> RefName -> IO T.Text
+{- This fails (https://github.com/jwiegley/gitlib/issues/49), so use command
+ - line git instead.
 getGitReference' repoPath refName = do
     withRepository lgFactory repoPath $ do
         Just ref <- resolveReference refName
-        {-
-        This fails (https://github.com/jwiegley/gitlib/issues/49)
         o <- lookupObject ref
         r <- case o of
             TagObj t -> do
                 return $ renderObjOid $ tagCommit t
             _ -> return $ renderOid ref
-        -}
         return $ renderOid ref
+-}
+getGitReference' repoPath refName = do
+    T.pack . concat . lines . fromStdout <$> cmd ["git", "-C", repoPath, "rev-parse", T.unpack refName++"^{commit}"]
 
 getGitFileRef' :: RepoPath -> T.Text -> FilePath -> IO (Maybe T.Text)
 getGitFileRef' repoPath ref' fn = do
