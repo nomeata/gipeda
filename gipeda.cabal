@@ -11,7 +11,7 @@ description:
  the `logs/` directory, gipeda is happy.
  .
  Gipeda produces static pages. In fact, the (single) html file and the
- accompagning JavaScript code is completely static. Giepda just generates a
+ accompanying JavaScript code is completely static. Giepda just generates a
  large number of json files. This has the advantage of easy deployment: Just put
  gipeda in your webspace or copy the files to some static web hosting and you
  are done. This puts very little load on your server, is cache-friendly and has
