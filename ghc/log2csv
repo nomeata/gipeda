@@ -29,10 +29,16 @@ for my $filename (@ARGV) {
 		printf "testsuite/unexpected failures;$1\n"
 			if (m/^ +(\d+) unexpected failures/);
 
+	}
+	if ($log =~ m!^shift/reduce conflicts:  (\d+)!m) {
 		printf "parser/shift/reduce;$1\n"
-			if (m!^shift/reduce conflicts:  (\d+)!);
+	} else {
+		printf "parser/shift/reduce;0\n"
+	}
+	if ($log =~ m!^reduce/reduce conflicts: (\d+)!m) {
 		printf "parser/reduce/reduce;$1\n"
-			if (m!^reduce/reduce conflicts: (\d+)!);
+	} else {
+		printf "parser/reduce/reduce;0\n"
 	}
 
 	printf "buildtime/make;%d\n", $1 *60 + $2
