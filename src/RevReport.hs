@@ -7,6 +7,7 @@ import qualified Data.Map as M
 import qualified Data.ByteString.Lazy as BS
 import Data.Aeson
 import Development.Shake.Command
+import Text.Read
 
 import ReportTypes
 import ReadResult
@@ -28,7 +29,10 @@ revReportMain (this:parents) = do
         _   -> fromStdout <$> git ["show", "-s", this]
 
     msg <- fromStdout <$> git ["show", "--format=%s", "-s", this]
-    date <- read . fromStdout <$> git ["show", "--format=%ct","-s",this]
+    dateS <- fromStdout <$> git ["show", "--format=%ct","-s",this]
+    date <- case readMaybe dateS of
+	Just date -> return date
+	Nothing -> error $ "Could not parse date " ++ show dateS
 
     let rep = createReport settings this parents thisM parentM log msg date
     let doc = emptyGlobalReport { revisions = Just (M.singleton this rep) }
