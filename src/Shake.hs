@@ -251,9 +251,9 @@ shakeMain = do
                 , T.pack "branches" .= object [ (T.pack t .= h) | (t,h) <- branchesAndHashes ]
                 ]
         liftIO $ LBS.writeFile out (encode o)
-        tagCommits <- filterM (doesLogExist logSource) (map snd tagsAndHashes)
+        extraCommits <- filterM (doesLogExist logSource) (map snd tagsAndHashes ++ map snd branchesAndHashes)
 
-        let revs = nub $ recentCommits ++ tagCommits
+        let revs = nub $ recentCommits ++ extraCommits
 
         need $ map summaryOf revs
 
