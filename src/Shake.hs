@@ -177,8 +177,9 @@ shakeMain = do
                 writeFileChanged out ""
             Just pattern -> do
                 Stdout branches <- git "branch" ["--list", pattern]
-                branches' <- filterM (isGitAncestor "repository" (S.start s)) (map (drop 2) $ lines branches)
-                writeFileChanged out (unlines branches')
+                branches <- filterM (isGitAncestor "repository" (S.start s)) (map (drop 2) $ lines branches)
+                branches <- filterM (\b -> not <$> isGitAncestor "repository" b "master") branches
+                writeFileChanged out (unlines branches)
 
     "graphs" ~> do
         [latest] <- readFileLines "site/out/latest.txt"
