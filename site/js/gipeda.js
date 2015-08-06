@@ -173,15 +173,14 @@ Handlebars.registerHelper('graphLink', function(benchName, hl1, hl2) {
     if (hl2 && typeof(hl2) == 'string') {hls.push(hl2)};
     return "#" + routes.graph.url(benchName,hls);
 });
-Handlebars.registerHelper('diffLink', function(rev1, rev2) {
-    return Handlebars.compile(data.settings.diffLink)({base: rev1, rev: rev2});
-});
-Handlebars.registerHelper('logLink', function(rev, options) {
-  if (data.settings.logLink) {
-    var link = Handlebars.compile(data.settings.logLink)({rev: rev});
-    $.extend(this,{link:link});
-    return options.fn(this);
-  }
+Handlebars.registerHelper('revisionInfo', function(revSummary) {
+    var ctxt = {};
+    ctxt.rev = revSummary.hash;
+    if (revSummary.parents) {
+	ctxt.base=revSummary.parents[0];
+    }
+    var result = Handlebars.compile(data.settings.revisionInfo)(ctxt);
+    return new Handlebars.SafeString(result);
 });
 Handlebars.registerHelper('indexLink', function() {
   return "#" + routes.index.url();

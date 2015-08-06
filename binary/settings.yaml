@@ -1,6 +1,5 @@
 title: Binary
-diffLink: https://github.com/kolmodin/binary/commit/{{rev}}
-# logLink: https://raw.githubusercontent.com/nomeata/ghc-speed-logs/master/{{rev}}.log
+revisionInfo: '<a href="https://github.com/kolmodin/binary/commit/{{rev}}">GitHub</a>'
 limitRecent: 20
 start: 4853c7b467409468ac9029558c8ed3caa4a4be6c
 

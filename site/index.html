@@ -364,20 +364,15 @@ html {
     </h2>
     <p>
     {{#if rev.summary.parents}}
-    Displaying changes since:
+    Parent:
     {{#with (lookup rev.summary.parents 0)}}
       <a href="{{revisionLink this}}">
 	{{> rev-id hash=this}}
-      </a> –
-      <a href="{{diffLink this ../rev.summary.hash}}">View diff</a>
+      </a>
     {{/with}} –
-    {{#logLink rev.summary.hash }}
-      <a href="{{link}}">View buildlog</a> –
-    {{/logLink}}
-      {{> summary-icons rev.summary.stats }}
-    {{else}}
-    No parent commit found.
     {{/if}}
+    {{revisionInfo rev.summary }} –
+    {{> summary-icons rev.summary.stats }}
     </p> 
     <pre>{{rev.gitLog}}</pre>
     {{/if}}
