@@ -5,6 +5,7 @@ module Development.Shake.Gitlib
     , getGitContents
     , doesGitFileExist
     , readGitFile
+    , isGitAncestor
     ) where
 
 import System.IO
@@ -13,6 +14,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import Data.Functor
 import Data.Maybe
+import System.Exit
 
 
 import Development.Shake
@@ -36,6 +38,9 @@ newtype GitSHA = GitSHA T.Text
 newtype GetGitFileRefQ = GetGitFileRefQ (RepoPath, RefName, FilePath)
     deriving (Typeable,Eq,Hashable,Binary,NFData,Show)
 
+newtype IsGitAncestorQ = IsGitAncestorQ (RepoPath, RefName, RefName)
+    deriving (Typeable,Eq,Hashable,Binary,NFData,Show)
+
 instance Rule GetGitReferenceQ GitSHA where
     storedValue _ (GetGitReferenceQ (repoPath, name)) = do
         Just . GitSHA <$> getGitReference' repoPath name
@@ -45,10 +50,18 @@ instance Rule GetGitFileRefQ (Maybe T.Text) where
         ref' <- getGitReference' repoPath name
         Just <$> getGitFileRef' repoPath ref' filename
 
+instance Rule IsGitAncestorQ Bool where
+    storedValue _ (IsGitAncestorQ (repoPath, ancestor, child)) = do
+        Just <$> isGitAncestor' repoPath ancestor child
+
 getGitReference :: RepoPath -> String -> Action String
 getGitReference repoPath refName = do
     GitSHA ref' <- apply1 $ GetGitReferenceQ (repoPath, T.pack refName)
     return $ T.unpack ref'
+
+isGitAncestor :: RepoPath -> String -> String -> Action Bool
+isGitAncestor repoPath ancName childName = do
+    apply1 $ IsGitAncestorQ (repoPath, T.pack ancName, T.pack childName)
 
 getGitContents :: RepoPath -> Action [FilePath]
 getGitContents repoPath = do
@@ -76,6 +89,12 @@ getGitReference' repoPath refName = do
 -}
 getGitReference' repoPath refName = do
     T.pack . concat . lines . fromStdout <$> cmd ["git", "-C", repoPath, "rev-parse", T.unpack refName++"^{commit}"]
+
+isGitAncestor' :: RepoPath -> RefName -> RefName -> IO Bool
+-- Easier using git
+isGitAncestor' repoPath ancName childName = do
+    Exit c <- cmd ["git", "-C", repoPath, "merge-base", "--is-ancestor", T.unpack ancName, T.unpack childName]
+    return (c == ExitSuccess)
 
 getGitFileRef' :: RepoPath -> T.Text -> FilePath -> IO (Maybe T.Text)
 getGitFileRef' repoPath ref' fn = do
@@ -109,4 +128,6 @@ defaultRuleGitLib = do
     rule $ \(GetGitFileRefQ (repoPath, refName, fn)) -> Just $ do
         GitSHA ref' <- apply1 $ GetGitReferenceQ (repoPath, "HEAD")
         liftIO $ getGitFileRef' repoPath ref' fn
+    rule $ \(IsGitAncestorQ (repoPath, ancName, childName)) -> Just $ liftIO $
+        isGitAncestor' repoPath ancName childName
 

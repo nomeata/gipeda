@@ -164,7 +164,21 @@ shakeMain = do
                 writeFileChanged out ""
             Just pattern -> do
                 Stdout tags <- git "tag" ["-l", pattern]
-                writeFileChanged out tags
+                tags' <- filterM (isGitAncestor "repository" (S.start s)) (lines tags)
+                writeFileChanged out (unlines tags')
+
+    "site/out/branches.txt" *> \ out -> do
+        alwaysRerun
+
+        need ["settings.yaml"]
+        s <- liftIO $ S.readSettings "settings.yaml"
+        case S.interestingBranches s of
+            Nothing ->
+                writeFileChanged out ""
+            Just pattern -> do
+                Stdout branches <- git "branch" ["--list", pattern]
+                branches' <- filterM (isGitAncestor "repository" (S.start s)) (map (drop 2) $ lines branches)
+                writeFileChanged out (unlines branches')
 
     "graphs" ~> do
         [latest] <- readFileLines "site/out/latest.txt"
@@ -226,7 +240,16 @@ shakeMain = do
         tagsAndHashes <- forM tags $ \t -> do
             h <- getGitReference "repository" ("refs/tags/" ++ t)
             return $ (t, h)
-        let o = object [ T.pack "tags" .= object [ (T.pack t .= h) | (t,h) <- tagsAndHashes ]]
+
+        branches <- readFileLines "site/out/branches.txt"
+        branchesAndHashes <- forM branches $ \t -> do
+            h <- getGitReference "repository" ("refs/heads/" ++ t)
+            return $ (t, h)
+
+        let o = object
+                [ T.pack "tags" .= object [ (T.pack t .= h) | (t,h) <- tagsAndHashes ]
+                , T.pack "branches" .= object [ (T.pack t .= h) | (t,h) <- branchesAndHashes ]
+                ]
         liftIO $ LBS.writeFile out (encode o)
         tagCommits <- filterM (doesLogExist logSource) (map snd tagsAndHashes)
 

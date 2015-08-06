@@ -33,5 +33,5 @@ test -d bootstrap || {
 	rm -f bootstrap-3.3.1-dist.zip
 	cd ..
 	}
-test -e naturalSort.j ||
+test -e naturalSort.js ||
 	wget -c https://raw.githubusercontent.com/overset/javascript-natural-sort/master/naturalSort.js

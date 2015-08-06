@@ -3,6 +3,7 @@ revisionInfo: '<a href="https://git.haskell.org/ghc.git/commitdiff/{{rev}}">View
 limitRecent: 50
 start: 55e7ab1210975e6276f3cab3ac0e1f35bcd772f0
 interestingTags: "*-release"
+interestingBranches: "*"
 
 benchmarks:
   - match: "*"

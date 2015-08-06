@@ -88,6 +88,7 @@ data Settings = Settings
    , limitRecent :: Integer
    , start :: String
    , interestingTags :: Maybe String
+   , interestingBranches :: Maybe String
    , benchSettings :: BenchName -> BenchSettings
    }
 
@@ -98,6 +99,7 @@ instance FromJSON Settings where
                  <*> v .: "limitRecent"
                  <*> v .: "start"
                  <*> v .:? "interestingTags"
+                 <*> v .:? "interestingBranches"
                  <*> (unS <$> v.: "benchmarks")
     parseJSON _ = mzero
 

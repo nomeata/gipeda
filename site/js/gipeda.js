@@ -150,7 +150,7 @@ $(function ()  {
     templates[id] = Handlebars.compile(source);
   });
 
-  var partials_ids =  ["nav", "summary-icons", "summary-list", "rev-id", "nothing", "tags"];
+  var partials_ids =  ["nav", "summary-icons", "summary-list", "rev-id", "nothing", "tags", "branches"];
   partials_ids.forEach(function(id) {
     var source = $("#" + id).html();
     Handlebars.registerPartial(id, source);
@@ -233,7 +233,9 @@ Handlebars.registerHelper('each_unnaturally', function(context,options){
     if (context) {
 	console.log(context);
 	var keys = jQuery.map(context, function(v,k) {return k});
-	var sorted_keys = keys.sort(naturalSort).reverse();
+        // needs https://github.com/overset/javascript-natural-sort/issues/21 fixed
+	//var sorted_keys = keys.sort(naturalSort).reverse();
+	var sorted_keys = keys.sort().reverse();
 	sorted_keys.map(function (k,i) {
 	    output += options.fn(context[k], {data: {key: k, index: i}});
 	});

@@ -252,6 +252,49 @@ html {
   </table>
 </script>
 
+<script id="branches"  type="text/x-handlebars-template">
+  <h2>Branches</h2>
+  <table class="table branch-table">
+   {{#each_unnaturally branches}}
+     {{#with (lookup ../revisions this)}}
+      {{#with this.summary}}
+      <tr class="branch-row">
+       <td class="col-md-2 text-right">
+	 <abbrv class="timeago" title="{{ iso8601 this.gitDate }}">{{ humanDate this.gitDate}}</abbrv>
+       </td>
+       <td class="col-md-1">
+	<a href="{{revisionLink hash}}">
+          {{> rev-id hash=hash}}
+	</a>
+       </td>
+       <td class="col-md-2">
+	 <strong>{{ @key }}</strong>
+       </td>
+       <td class="col-md-7">
+	 {{ gitSubject }}
+       </td>
+      </tr>
+      {{/with}}
+     {{else}}
+      <tr
+       title="The tip of this branch has not been benchmarked yet"
+       class="branch-row">
+       <td class="col-md-2 text-right">
+       </td>
+       <td class="col-md-1">
+          {{> rev-id hash=this}}
+       </td>
+       <td class="col-md-2">
+	 {{ @key }}
+       </td>
+       <td class="col-md-7 text-right">
+       </td>
+      </tr>
+     {{/with}}
+   {{/each_unnaturally}}
+  </table>
+</script>
+
 <script id="revTooltip" type="text/x-handlebars-template">
  <a href="{{revisionLink hash}}">
   {{> rev-id hash=hash}}
@@ -333,12 +376,15 @@ html {
  <div class="container">
   <h1>Recent commits</h1>
   {{> summary-list (recentCommits revisions)}}
-  {{> tags }}
- </div>
- <div class="container">
   <p class="text-center">
     <a href="{{allLink}}">view older commits...</a>
   </p>
+ </div>
+ <div class="container">
+  {{> tags }}
+ </div>
+ <div class="container">
+  {{> branches }}
  </div>
 </script>
 
@@ -348,6 +394,7 @@ html {
   <h1>All commits</h1>
   {{> summary-list (allCommits revisions)}}
   {{> tags }}
+  {{> branches }}
  </div>
 </script>
 
