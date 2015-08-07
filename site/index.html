@@ -84,6 +84,13 @@ html {
     background-color: #fcf8e3;
 }
 
+.branch-improvement , .row-Improvement {
+    background-color: #dff0d8;
+}
+.branch-regression, .row-Regression {
+    background-color: #fcf8e3;
+}
+
 .benchmark-name a.graph-link {
     visibility:hidden;
 }
@@ -258,7 +265,12 @@ html {
    {{#each_unnaturally branches}}
      {{#with (lookup ../revisions this)}}
       {{#with this.summary}}
-      <tr class="branch-row">
+      <tr
+       class="
+         branch-row
+         {{#if stats.improvementCount}}branch-improvement{{/if}}
+         {{#if stats.regressionCount}}branch-regression{{/if}}
+       ">
        <td class="col-md-2 text-right">
 	 <abbrv class="timeago" title="{{ iso8601 this.gitDate }}">{{ humanDate this.gitDate}}</abbrv>
        </td>
@@ -270,8 +282,11 @@ html {
        <td class="col-md-2">
 	 <strong>{{ @key }}</strong>
        </td>
-       <td class="col-md-7">
+       <td class="col-md-5">
 	 {{ gitSubject }}
+       </td>
+       <td class="col-md-2 text-right">
+        {{> summary-icons stats}}
        </td>
       </tr>
       {{/with}}
@@ -287,7 +302,9 @@ html {
        <td class="col-md-2">
 	 {{ @key }}
        </td>
-       <td class="col-md-7 text-right">
+       <td class="col-md-5">
+       </td>
+       <td class="col-md-2 text-right">
        </td>
       </tr>
      {{/with}}
