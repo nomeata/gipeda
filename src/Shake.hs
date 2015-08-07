@@ -92,7 +92,6 @@ determineLogSource = do
 shakeMain :: IO ()
 shakeMain = do
     logSource <- determineLogSource
-    print logSource
 
     shakeArgs shakeOptions $ do
     defaultRuleGitLib
@@ -130,10 +129,29 @@ shakeMain = do
         Stdout stdout <- git "rev-parse" ["master"]
         writeFileChanged out stdout
 
+    "site/out/heads.txt" *> \ out -> do
+        tags <- readFileLines "site/out/tags.txt"
+        tagHashes <- forM tags $ \t -> do
+            getGitReference "repository" ("refs/tags/" ++ t)
+
+        branches <- readFileLines "site/out/branches.txt"
+        branchHashes <- forM branches $ \t -> do
+            getGitReference "repository" ("refs/heads/" ++ t)
+
+        masterHash <- getGitReference "repository" "refs/heads/master"
+
+        let heads = nub $ masterHash : tagHashes ++ branchHashes
+        writeFileChanged out $ unlines $ heads
+
 
     "site/out/history.csv" *> \out -> do
-        range <- gitRange
-        Stdout stdout <- git "log" ["--format=%H;%P",range]
+        heads <- readFileLines "site/out/heads.txt"
+
+        s <- liftIO $ S.readSettings "settings.yaml"
+        let first = S.start s
+
+        Stdout stdout <- git "log" $
+                "--format=%H;%P": ("^"++first) : heads
         writeFileChanged out stdout
     want ["site/out/history.csv"]
 
