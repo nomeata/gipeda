@@ -18,3 +18,5 @@ site/js/hasher.min.js
 site/js/jquery-1.11.2.min.js
 site/js/jquery.timeago.js
 site/js/signals.min.js
+site/js/naturalSort.js
+site/js/jquery-ui/
