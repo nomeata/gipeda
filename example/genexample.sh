@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -e
+set -x
 
 test -e repository || ln -sf ../.git repository
 test -e gipeda || ln -sf ../gipeda gipeda
