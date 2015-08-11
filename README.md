@@ -14,7 +14,7 @@ hook or a elaborate jenkins setup. As long as the performance data ends up in
 the `logs/` directory, gipeda is happy.
 
 Gipeda produces static pages. In fact, the (single) html file and the
-accompagning JavaScript code is completely static. Giepda just generates a
+accompagning JavaScript code is completely static. Gipeda just generates a
 large number of json files. This has the advantage of easy deployment: Just put
 gipeda in your webspace of copy the files to some static web hosting and you
 are done. This putts very little load on your server, is cache friendly and has
@@ -32,10 +32,10 @@ Setting it up
 -------------
 
  * Clone gipeda somewhere, possibly directly into your webspace.
- * Install a Haskell compiler, including the `cablal` tool.
+ * Install a Haskell compiler, including the `cabal` tool.
  * Install a few packages
 
-        apt-get install git unzip libfile-slurp-perl libipc-run-perl
+        apt-get install git unzip libfile-slurp-perl libipc-run-perl libicu-dev
 
  * Install the dependencies:
 
@@ -69,7 +69,7 @@ Hence, put whatever format you have (text base logs, JUnit reports, whatever)
 into the directory `logs`, named `<gitrev>.log`, e.g.
 `logs/0279a7d327a3b962ffa93a95d47ea5d9ee31e25c.log`.
 
-Then create a script `log2csv` that expects the filename of such a log on on
+Then create a script `log2csv` that expects the filename of such a log on
 the command line and produces the desired CSV file.
 
 Running gipeda
