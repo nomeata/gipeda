@@ -17,6 +17,7 @@ import qualified BenchmarkSettings as S
 data ClientSettings = ClientSettings
    { title :: String
    , revisionInfo :: String
+   , diffLink :: Maybe String
    }
  deriving (Generic)
 instance ToJSON ClientSettings
