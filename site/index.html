@@ -527,9 +527,7 @@ html {
      {{/each}}</br>
       <a href="{{revisionLink rev1.summary.hash}}">{{> rev-id hash=rev1.summary.hash}}</a> <abbrv class="timeago" title="{{ iso8601 gitDate }}">{{ humanDate rev1.summary.gitDate}}</abbrv>:<br/>
      <strong>{{ rev1.summary.gitSubject }}</strong><br/>
-     {{#logLink rev1.summary.hash }}
-      <a href="{{link}}">buildlog</a>
-     {{/logLink}}
+     {{revisionInfo rev1.summary }}
     </p>
     <p class="text-center">
       ⁞<br/>
@@ -543,9 +541,7 @@ html {
      {{/each}}</br>
       <a href="{{revisionLink rev2.summary.hash}}">{{> rev-id hash=rev2.summary.hash}}</a> <abbrv class="timeago" title="{{ iso8601 gitDate }}">{{ humanDate rev2.summary.gitDate}}</abbrv>:<br/>
      <strong>{{ rev2.summary.gitSubject }}</strong><br/>
-     {{#logLink rev2.summary.hash }}
-      <a href="{{link}}">buildlog</a>
-     {{/logLink}}
+     {{revisionInfo rev2.summary }}
     </p>
     {{/if}} {{/if}}
    </div>

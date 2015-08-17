@@ -173,6 +173,13 @@ Handlebars.registerHelper('graphLink', function(benchName, hl1, hl2) {
     if (hl2 && typeof(hl2) == 'string') {hls.push(hl2)};
     return "#" + routes.graph.url(benchName,hls);
 });
+Handlebars.registerHelper('diffLink', function(rev1, rev2) {
+    if (data.settings.diffLink) {
+	return Handlebars.compile(data.settings.diffLink)({base: rev1, rev: rev2});
+    } else {
+	return 'javascript:alert("No diffLink defined in settings")';
+    }
+});
 Handlebars.registerHelper('revisionInfo', function(revSummary) {
     var ctxt = {};
     ctxt.rev = revSummary.hash;
