@@ -81,13 +81,15 @@ data LogSource = FileSystem | BareGit | NoLogs deriving Show
 determineLogSource :: IO LogSource
 determineLogSource = do
     haveLogs <- System.Directory.doesDirectoryExist "logs"
-    if haveLogs
-    then do
-        Stdout s <- cmd "git -C logs rev-parse --is-bare-repository"
-        if s == "true\n"
-        then return BareGit
-        else return FileSystem
-    else return NoLogs
+    haveGit <- System.Directory.doesDirectoryExist "logs/.git"
+    case (haveLogs, haveGit) of
+        (False, _) -> do return NoLogs
+        (True, True) -> do
+            Stdout s <- cmd "git -C logs rev-parse --is-bare-repository"
+            if s == "true\n"
+            then return BareGit
+            else return FileSystem
+        (True, False) -> return FileSystem
 
 shakeMain :: IO ()
 shakeMain = do
