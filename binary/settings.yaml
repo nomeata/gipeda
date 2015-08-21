@@ -1,5 +1,6 @@
 title: Binary
 revisionInfo: '<a href="https://github.com/kolmodin/binary/commit/{{rev}}">GitHub</a>'
+diffLink: "https://github.com/kolmodin/binary/compare/{{base}}...{{rev}}"
 limitRecent: 20
 start: 4853c7b467409468ac9029558c8ed3caa4a4be6c
 
