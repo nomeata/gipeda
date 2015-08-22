@@ -10,6 +10,11 @@ benchmarks:
     unit: MB/s
     group: "Throughput measurements"
 
+  - match: "benchmark/*"
+    smallerIsBetter: True
+    unit: nano seconds
+    group: "Benchmarks"
+
   - match: "build/warnings"
     smallerIsBetter: True
     unit: warnings

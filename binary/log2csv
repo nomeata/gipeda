@@ -5,7 +5,20 @@ use warnings;
 
 use File::Basename;
 use File::Slurp;
-use IPC::Run qw/run/;
+
+my %times = (
+	"s" => 1,
+	"ms" => 0.001,
+	"us" => 0.000001, # us/μs, criterion can print it either way.
+	"μs" => 0.000001,
+	"ns" => 0.000000001,
+	"ps" => 0.000000000001,
+	"fs" => 0.000000000000001,
+	"as" => 0.000000000000000001,
+);
+
+# convert seconds to nano seconds.
+my $standard_multiplier = 1000000000;
 
 for my $filename (@ARGV) {
         my $log = read_file($filename);
@@ -29,4 +42,14 @@ for my $filename (@ARGV) {
 	my $warnings = () = $log =~ /:[0-9]+:[0-9]+: Warning:/g;
 	print "build/warnings;$warnings\n";
 
+	while($log =~ /benchmarking ([^\n]+?)\ntime\s+([0-9\.]+) (s|ms|us|μs|ns|ps|fs|as)/msg) {
+		# matching the following string;
+		# ---
+		# benchmarking <name of benchmark: 1>
+		# time         <time as float point: 2> <unit: 3>
+		# ---
+		my $multiplier = $times{$3};
+		my $time = $2 * $multiplier * $standard_multiplier;
+		printf("benchmark/%s;%d\n", $1, $time);
+	}
 }
