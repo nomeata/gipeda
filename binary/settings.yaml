@@ -9,3 +9,8 @@ benchmarks:
     smallerIsBetter: False
     unit: MB/s
     group: "Throughput measurements"
+
+  - match: "build/warnings"
+    smallerIsBetter: True
+    unit: warnings
+    group: "Build"

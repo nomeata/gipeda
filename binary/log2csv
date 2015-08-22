@@ -25,6 +25,8 @@ for my $filename (@ARGV) {
 		print "throughput/words/read/Haskell;$4\n";
 	}
 
-
+	# Find all compiler warnings and count them.
+	my $warnings = () = $log =~ /:[0-9]+:[0-9]+: Warning:/g;
+	print "build/warnings;$warnings\n";
 
 }
