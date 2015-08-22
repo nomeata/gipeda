@@ -83,7 +83,7 @@ determineLogSource = do
     haveLogs <- System.Directory.doesDirectoryExist "logs"
     if haveLogs
     then do
-        Stdout s <- cmd "git -C logs rev-parse --is-bare-repository"
+        (Exit _, Stdout s) <- cmd "git -C logs rev-parse --is-bare-repository"
         if s == "true\n"
         then return BareGit
         else return FileSystem
