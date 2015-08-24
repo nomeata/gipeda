@@ -38,12 +38,13 @@ self name args = do
     -- orderOnly ["gipeda"]
     cmd (Traced name) "./gipeda" name args
 
-gitRange :: Action String
+gitRange :: Action [String]
 gitRange = do
     s <- liftIO $ S.readSettings "settings.yaml"
     let first = S.start s
-    [head] <- readFileLines "site/out/head.txt"
-    return $ first ++ ".." ++ head
+    heads <- readFileLines "site/out/heads.txt"
+    Stdout range <- git "log" $ ["--format=%H","^"++first] ++ heads
+    return $ words range
 
 needIfThere :: [FilePath] -> Action [FilePath]
 needIfThere files = do
@@ -109,17 +110,13 @@ shakeMain = do
         S.limitRecent <$> liftIO (S.readSettings "settings.yaml")
 
     "reports" ~> do
-        range <- gitRange
-        Stdout range <- git "log" ["--format=%H",range]
-        let hashes = words range
+        hashes <- gitRange
         withLogs <- filterM (doesLogExist logSource) hashes
         need $ map reportOf withLogs
     want ["reports"]
 
     "summaries" ~> do
-        range <- gitRange
-        Stdout range <- git "log" ["--format=%H",range]
-        let hashes = words range
+        hashes <- gitRange
         withLogs <- filterM (doesLogExist logSource) hashes
         need $ map summaryOf withLogs
     want ["summaries"]
@@ -307,9 +304,7 @@ shakeMain = do
 
 
     "site/out/all-summaries.json" *> \out -> do
-        range <- gitRange
-        Stdout range <- git "log" ["--format=%H",range]
-        let hashes = words range
+        hashes <- gitRange
         revs <- filterM (doesLogExist logSource) hashes
         need (map summaryOf revs)
 
