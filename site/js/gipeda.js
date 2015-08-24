@@ -363,9 +363,9 @@ function compareResults (res1, res2) {
 
                 if (Math.abs(perc) >= s.threshold) {
                     if (perc >= 0) {
-                        s.changeType = "Improvement";
+                        res.changeType = "Improvement";
                     } else {
-                        s.changeType = "Regression";
+                        res.changeType = "Regression";
                     }
                 }
             }
