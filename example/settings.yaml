@@ -1,4 +1,5 @@
 title: Gipeda itself
+diffLink:
 revisionInfo: '<a href="https://github.com/nomeata/gipeda/commit/{{rev}}">View Diff</a>'
 limitRecent: 20
 start: 65b3eede043ff5d4718724d220a82bbc8adc3280
