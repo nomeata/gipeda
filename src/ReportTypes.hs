@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveGeneric, ViewPatterns, RecordWildCards, OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric, ViewPatterns, RecordWildCards, OverloadedStrings, CPP #-}
 
 module ReportTypes where
 
@@ -107,6 +107,9 @@ data BenchResult = BenchResult
  deriving (Generic)
 instance ToJSON BenchResult where
     toJSON = genericToJSON defaultOptions
+#if MIN_VERSION_aeson(0,10,0)
+    toEncoding = genericToEncoding defaultOptions
+#endif
 instance FromJSON BenchResult where
     parseJSON = genericParseJSON defaultOptions
 
@@ -117,11 +120,15 @@ data GraphPoint = GraphPoint
     }
  deriving (Generic)
 instance ToJSON GraphPoint where
-    toJSON = genericToJSON (defaultOptions { fieldLabelModifier = fixup })
+    toJSON = genericToJSON graphPointOptions
+#if MIN_VERSION_aeson(0,10,0)
+    toEncoding = genericToEncoding graphPointOptions
+#endif
 instance FromJSON GraphPoint where
-    parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = fixup })
+    parseJSON = genericParseJSON graphPointOptions
 
-fixup ('g':'p':c:cs) = toLower c : cs
+graphPointOptions = defaultOptions { fieldLabelModifier = fixup }
+  where fixup ('g':'p':c:cs) = toLower c : cs
 
 benchResultToGraphPoint (BenchResult {..}) = GraphPoint
     { gpValue = value
