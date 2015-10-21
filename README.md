@@ -35,7 +35,7 @@ Setting it up
  * Install a Haskell compiler, including the `cabal` tool.
  * Install a few packages
 
-        apt-get install git unzip libfile-slurp-perl libipc-run-perl libicu-dev
+        apt-get install git unzip libssl-dev libfile-slurp-perl libipc-run-perl libicu-dev
 
  * Install the dependencies:
 
