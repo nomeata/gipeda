@@ -361,12 +361,14 @@ function compareResults (res1, res2) {
                     res.change = "- " + (-percS) + "%";
                 }
 
-                if (Math.abs(perc) >= s.threshold) {
-                    if (perc >= 0) {
+                var th_up = s.threshold;
+                var th_down = (1-(1/(1+s.threshold/100)))*100;
+
+                if (perc >= 0 && perc > th_up) {
                         res.changeType = "Improvement";
-                    } else {
+                }
+                if (perc < 0 && -perc > th_down) {
                         res.changeType = "Regression";
-                    }
                 }
             }
         } else if (s.type == "small integral") {

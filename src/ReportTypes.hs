@@ -165,12 +165,16 @@ explainFloat s f1 f2 = (change, typ)
     change | abs perc < 0.01 = "="
            | perc  >= 0 = printf "+ %.2f%%" perc
            | perc  <  0 = printf "- %.2f%%" (-perc)
-    typ | abs perc < th = Boring
+    typ | perc >= 0,  perc < th_up = Boring
+        | perc <  0, -perc < th_down = Boring
         | perc  >= 0 = Improvement
         | perc  <  0 = Regression
 
     perc = 100 * ((f2 - f1) / f1)
-    th = S.threshold s
+    th_up = S.threshold s
+    -- Adjusted threshold, to make sure that the inverse change is flagged
+    -- equivalently
+    th_down = (1-(1/(1+S.threshold s/100)))*100
 
 toFloat :: BenchValue -> Double
 toFloat (I i) = fromIntegral i
