@@ -226,7 +226,6 @@ Handlebars.registerHelper('humanDate', function(timestamp) {
 Handlebars.registerHelper('each_naturally', function(context,options){
     var output = '';
     if (context) {
-	console.log(context);
 	var keys = jQuery.map(context, function(v,k) {return k});
 	var sorted_keys = keys.sort(naturalSort);
 	sorted_keys.map(function (k,i) {
@@ -238,14 +237,36 @@ Handlebars.registerHelper('each_naturally', function(context,options){
 Handlebars.registerHelper('each_unnaturally', function(context,options){
     var output = '';
     if (context) {
-	console.log(context);
 	var keys = jQuery.map(context, function(v,k) {return k});
-        // needs https://github.com/overset/javascript-natural-sort/issues/21 fixed
-	//var sorted_keys = keys.sort(naturalSort).reverse();
-	var sorted_keys = keys.sort().reverse();
+	var sorted_keys = keys.sort(naturalSort).reverse();
 	sorted_keys.map(function (k,i) {
 	    output += options.fn(context[k], {data: {key: k, index: i}});
 	});
+    }
+    return output;
+});
+
+// Sort by age, then by name
+Handlebars.registerHelper('each_branch', function(context,options){
+    var output = '';
+    if (context) {
+	jQuery.map(context, function (b,i) { return {branchHash: b, branchName: i}; })
+            .sort(function(a,b) {
+                revA = data.revisions[a.branchHash];
+                revB = data.revisions[b.branchHash];
+	        if (revA && revB) {
+                    return revB.summary.gitDate - revA.summary.gitDate;
+                }
+	        if (revA) {
+                    return -1;
+                }
+	        if (revB) {
+                    return 1;
+                }
+                return naturalSort(a.branchName, b.branchName);
+            }).map(function (b,i) {
+                output += options.fn(b.branchHash, {data: {key: b.branchName, index: i}});
+            });
     }
     return output;
 });
