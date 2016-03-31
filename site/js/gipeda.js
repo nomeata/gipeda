@@ -250,6 +250,20 @@ Handlebars.registerHelper('each_unnaturally', function(context,options){
     return output;
 });
 
+// Sort by age, then by name
+Handlebars.registerHelper('each_branch', function(context,options){
+    var output = '';
+    if (context) {
+	console.log(context);
+	jQuery.map(context, function (b,i) { return {branch: b, branchName: i}; })
+            .sort(function(a,b) { return a.branch.gitDate - b.branch.gitDate; })
+            .map(function (b,i) {
+                output += options.fn(b.branch, {data: {key: b.branchName, index: i}});
+            });
+    }
+    return output;
+});
+
 // We cache everything
 var jsonSeen = {};
 var jsonFetching = {};

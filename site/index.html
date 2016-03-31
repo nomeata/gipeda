@@ -262,7 +262,7 @@ html {
 <script id="branches"  type="text/x-handlebars-template">
   <h2>Branches</h2>
   <table class="table branch-table">
-   {{#each_unnaturally branches}}
+   {{#each_branch branches}}
      {{#with (lookup ../revisions this)}}
       {{#with this.summary}}
       <tr
@@ -308,7 +308,7 @@ html {
        </td>
       </tr>
      {{/with}}
-   {{/each_unnaturally}}
+   {{/each_branch}}
   </table>
 </script>
 
