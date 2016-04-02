@@ -14,6 +14,7 @@ import System.IO.Extra (newTempFile)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as LBS
 import qualified System.Directory
+import System.Environment (getExecutablePath)
 import Data.Aeson
 import qualified Data.Text as T
 
@@ -36,7 +37,8 @@ git gitcmd args = do
 self :: (CmdResult b) => String -> [String] -> Action b
 self name args = do
     -- orderOnly ["gipeda"]
-    cmd (Traced name) "./gipeda" name args
+    gipeda <- liftIO getExecutablePath
+    cmd (Traced name) gipeda name args
 
 gitRange :: Action [String]
 gitRange = do
