@@ -1,5 +1,6 @@
 src/*.o
 src/*.hi
+*~
 gipeda
 example/site
 example/src
