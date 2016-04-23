@@ -5,6 +5,7 @@ import Data.FileEmbed
 import qualified Data.ByteString.Char8 as BS
 import Data.Monoid
 import System.Directory
+import Data.Functor
 
 marker :: BS.ByteString
 marker = "Remove this line to prevent gipeda from overriding this file"
