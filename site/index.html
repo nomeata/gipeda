@@ -274,13 +274,15 @@ html {
        <abbrv class="timeago" title="{{ iso8601 this.summary.gitDate }}">{{ humanDate this.summary.gitDate}}</abbrv>
        {{/with}}
      </td>
-     <td class="col-md-2">
-      {{# if commitCount }}
+     <td class="col-md-2 text-right">
+      {{# if @interesting }}
+       <!--
        <a href="{{revisionLink mergeBaseHash}}" title="Merge base of this branch">
          {{> rev-id hash=mergeBaseHash}}
        </a>
+       -->
        <a href="{{compareLink mergeBaseHash branchHash}}" title="Compare against merge base">
-         ..{{ commitCount }}..
+         {{ commitCount }} commits to
        </a>
        <a href="{{revisionLink branchHash}}" title="Show branch tip">
          {{> rev-id hash=branchHash}}

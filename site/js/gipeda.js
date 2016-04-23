@@ -265,7 +265,9 @@ Handlebars.registerHelper('each_branch', function(context,options){
                 }
                 return naturalSort(a.branchName, b.branchName);
             }).map(function (b,i) {
-                output += options.fn(b.branchData, {data: {key: b.branchName, index: i}});
+		var interesting = b.branchData.branchHash != b.branchData.mergeBaseHash;
+                output += options.fn(b.branchData,
+			{data: {key: b.branchName, index: i, interesting: interesting}});
             });
     }
     return output;
