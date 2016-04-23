@@ -45,7 +45,7 @@ Setting it up
 
         cabal install --bindir=.
 
- * Create a `settings.yaml`. You can look at the example file.
+ * Create a `gipeda.yaml`. You can look at the example file.
  * Clone the repository of your project into `repository/`. A bare clone is
    sufficient, e.g.
 

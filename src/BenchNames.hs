@@ -16,7 +16,7 @@ import qualified BenchmarkSettings as S
 
 benchNamesMain :: [S.BenchName] -> IO ()
 benchNamesMain benchNames = do
-    settings <- S.readSettings "settings.yaml"
+    settings <- S.readSettings "gipeda.yaml"
 
     let groups =
             map (uncurry BenchGroup) $

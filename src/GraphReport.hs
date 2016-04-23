@@ -17,7 +17,7 @@ import qualified BenchmarkSettings as S
 
 graphReportMain :: [String] -> IO ()
 graphReportMain (bench:revs) = do
-    settings <- S.readSettings "settings.yaml"
+    settings <- S.readSettings "gipeda.yaml"
 
     g <- forM revs $ \rev -> do
         json <- BS.readFile (reportOf rev)

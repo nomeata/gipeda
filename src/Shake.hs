@@ -44,7 +44,7 @@ self name args = do
 
 gitRange :: Action [String]
 gitRange = do
-    s <- liftIO $ S.readSettings "settings.yaml"
+    s <- liftIO $ S.readSettings "gipeda.yaml"
     let first = S.start s
     heads <- readFileLines "site/out/heads.txt"
     Stdout range <- git "log" $ ["--format=%H","^"++first] ++ heads
@@ -117,8 +117,8 @@ shakeMain = do
 -}
 
     getLimitRecent <- addOracle $ \(LimitRecent _) -> do
-        need ["settings.yaml"]
-        S.limitRecent <$> liftIO (S.readSettings "settings.yaml")
+        need ["gipeda.yaml"]
+        S.limitRecent <$> liftIO (S.readSettings "gipeda.yaml")
 
     "reports" ~> do
         hashes <- gitRange
@@ -187,7 +187,7 @@ shakeMain = do
     "site/out/history.csv" *> \out -> do
         heads <- readFileLines "site/out/heads.txt"
 
-        s <- liftIO $ S.readSettings "settings.yaml"
+        s <- liftIO $ S.readSettings "gipeda.yaml"
         let first = S.start s
 
         Stdout stdout <- git "log" $
@@ -215,8 +215,8 @@ shakeMain = do
     "site/out/tags.txt" *> \ out -> do
         alwaysRerun
 
-        need ["settings.yaml"]
-        s <- liftIO $ S.readSettings "settings.yaml"
+        need ["gipeda.yaml"]
+        s <- liftIO $ S.readSettings "gipeda.yaml"
         case S.interestingTags s of
             Nothing ->
                 writeFileChanged out ""
@@ -228,8 +228,8 @@ shakeMain = do
     "site/out/branches.txt" *> \ out -> do
         alwaysRerun
 
-        need ["settings.yaml"]
-        s <- liftIO $ S.readSettings "settings.yaml"
+        need ["gipeda.yaml"]
+        s <- liftIO $ S.readSettings "gipeda.yaml"
         case S.interestingBranches s of
             Nothing ->
                 writeFileChanged out ""
@@ -339,7 +339,7 @@ shakeMain = do
         need [resultsOf latest]
         b <- liftIO $ benchmarksInCSVFile (resultsOf latest)
 
-        need ["settings.yaml"]
+        need ["gipeda.yaml"]
 
         Stdout json <- self "BenchNames" (nub b)
         writeFile' out json
@@ -360,7 +360,7 @@ shakeMain = do
     want ["site/out/all-summaries.json"]
 
     "site/out/settings.json" *> \out -> do
-        need ["settings.yaml"]
+        need ["gipeda.yaml"]
 
         Stdout json <- self "JsonSettings" []
         writeFile' out json

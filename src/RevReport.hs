@@ -17,7 +17,7 @@ git args = cmd (words "git -C repository" ++ args)
 
 revReportMain :: [String] -> IO ()
 revReportMain (this:parents) = do
-    settings <- S.readSettings "settings.yaml"
+    settings <- S.readSettings "gipeda.yaml"
 
     thisM <- readCSV this
     parentM <- case parents of

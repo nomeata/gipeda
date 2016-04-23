@@ -9,6 +9,6 @@ import Data.Functor
 
 jsonSettingsMain :: IO ()
 jsonSettingsMain = do
-    s <- either (error.show) id <$> decodeFileEither "settings.yaml"
+    s <- either (error.show) id <$> decodeFileEither "gipeda.yaml"
     let o = object [ "settings" .= (s :: Object) ]
     BS.putStr (Data.Aeson.encode o)

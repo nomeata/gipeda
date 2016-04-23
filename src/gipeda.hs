@@ -28,9 +28,9 @@ main = do
 
     args <- getArgs
 
-    ex <- doesFileExist "settings.yaml"
+    ex <- doesFileExist "gipeda.yaml"
     unless ex $ do
-        hPutStr stderr "Please run this from the same directory as the settings.yaml file.\n"
+        hPutStr stderr "Please run this from the same directory as the gipeda.yaml file.\n"
 
 
     case args of 
