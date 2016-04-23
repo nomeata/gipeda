@@ -6,6 +6,7 @@ module Development.Shake.Gitlib
     , doesGitFileExist
     , readGitFile
     , isGitAncestor
+    , getGitMergeBase
     ) where
 
 import System.IO
@@ -41,6 +42,9 @@ newtype GetGitFileRefQ = GetGitFileRefQ (RepoPath, RefName, FilePath)
 newtype IsGitAncestorQ = IsGitAncestorQ (RepoPath, RefName, RefName)
     deriving (Typeable,Eq,Hashable,Binary,NFData,Show)
 
+newtype GetGitMergeBase = GetGitMergeBase (RepoPath, RefName, RefName)
+    deriving (Typeable,Eq,Hashable,Binary,NFData,Show)
+
 instance Rule GetGitReferenceQ GitSHA where
     storedValue _ (GetGitReferenceQ (repoPath, name)) = do
         Just . GitSHA <$> getGitReference' repoPath name
@@ -54,6 +58,10 @@ instance Rule IsGitAncestorQ Bool where
     storedValue _ (IsGitAncestorQ (repoPath, ancestor, child)) = do
         Just <$> isGitAncestor' repoPath ancestor child
 
+instance Rule GetGitMergeBase GitSHA where
+    storedValue _ (GetGitMergeBase (repoPath, baseBranchName, featureBranchName)) = do
+        Just <$> getGitMergeBase' repoPath baseBranchName featureBranchName
+
 getGitReference :: RepoPath -> String -> Action String
 getGitReference repoPath refName = do
     GitSHA ref' <- apply1 $ GetGitReferenceQ (repoPath, T.pack refName)
@@ -62,6 +70,12 @@ getGitReference repoPath refName = do
 isGitAncestor :: RepoPath -> String -> String -> Action Bool
 isGitAncestor repoPath ancName childName = do
     apply1 $ IsGitAncestorQ (repoPath, T.pack ancName, T.pack childName)
+
+getGitMergeBase :: RepoPath -> String -> String -> Action String
+getGitMergeBase repoPath baseBranchName featureBranchName = do
+    GitSHA ref <- apply1 $ GetGitMergeBase (repoPath, T.pack baseBranchName, T.pack featureBranchName)
+    return $ T.unpack ref
+
 
 getGitContents :: RepoPath -> Action [FilePath]
 getGitContents repoPath = do
@@ -95,6 +109,12 @@ isGitAncestor' :: RepoPath -> RefName -> RefName -> IO Bool
 isGitAncestor' repoPath ancName childName = do
     Exit c <- cmd ["git", "-C", repoPath, "merge-base", "--is-ancestor", T.unpack ancName, T.unpack childName]
     return (c == ExitSuccess)
+
+getGitMergeBase' :: RepoPath -> RefName -> RefName -> IO GitSHA
+-- Easier using git
+getGitMergeBase' repoPath baseBranchName featureBranchName = do
+    Stdout sha <- cmd ["git", "-C", repoPath, "merge-base", T.unpack baseBranchName, T.unpack featureBranchName]
+    return (GitSHA (T.pack (head (words sha))))
 
 getGitFileRef' :: RepoPath -> T.Text -> FilePath -> IO (Maybe T.Text)
 getGitFileRef' repoPath ref' fn = do
@@ -130,4 +150,6 @@ defaultRuleGitLib = do
         liftIO $ getGitFileRef' repoPath ref' fn
     rule $ \(IsGitAncestorQ (repoPath, ancName, childName)) -> Just $ liftIO $
         isGitAncestor' repoPath ancName childName
+    rule $ \(GetGitMergeBase (repoPath, baseBranchName, featureBranchName)) -> Just $ liftIO $
+        getGitMergeBase' repoPath baseBranchName featureBranchName
 

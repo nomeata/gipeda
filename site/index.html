@@ -263,51 +263,44 @@ html {
   <h2>Branches</h2>
   <table class="table branch-table">
    {{#each_branch branches}}
-     {{#with (lookup ../revisions this)}}
-      {{#with this.summary}}
-      <tr
-       class="
-         branch-row
-         {{#if stats.improvementCount}}branch-improvement{{/if}}
-         {{#if stats.regressionCount}}branch-regression{{/if}}
-       ">
-       <td class="col-md-2 text-right">
-	 <abbrv class="timeago" title="{{ iso8601 this.gitDate }}">{{ humanDate this.gitDate}}</abbrv>
-       </td>
-       <td class="col-md-1">
-	<a href="{{revisionLink hash}}">
-          {{> rev-id hash=hash}}
-	</a>
-       </td>
-       <td class="col-md-2">
-	 <strong>{{ @key }}</strong>
-       </td>
-       <td class="col-md-5">
-	 {{ gitSubject }}
-       </td>
-       <td class="col-md-2 text-right">
-        {{> summary-icons stats}}
-       </td>
-      </tr>
-      {{/with}}
-     {{else}}
-      <tr
-       title="The tip of this branch has not been benchmarked yet"
-       class="branch-row">
-       <td class="col-md-2 text-right">
-       </td>
-       <td class="col-md-1">
-          {{> rev-id hash=this}}
-       </td>
-       <td class="col-md-2">
-	 {{ @key }}
-       </td>
-       <td class="col-md-5">
-       </td>
-       <td class="col-md-2 text-right">
-       </td>
-      </tr>
-     {{/with}}
+    <tr
+     class="
+       branch-row
+       {{#if branchStats.improvementCount}}branch-improvement{{/if}}
+       {{#if branchStats.regressionCount}}branch-regression{{/if}}
+     ">
+     <td class="col-md-2 text-right">
+       {{#with (lookup ../revisions branchHash)}}
+       <abbrv class="timeago" title="{{ iso8601 this.summary.gitDate }}">{{ humanDate this.summary.gitDate}}</abbrv>
+       {{/with}}
+     </td>
+     <td class="col-md-2">
+      {{# if commitCount }}
+       <a href="{{revisionLink mergeBaseHash}}" title="Merge base of this branch">
+         {{> rev-id hash=mergeBaseHash}}
+       </a>
+       <a href="{{compareLink mergeBaseHash branchHash}}" title="Compare against merge base">
+         ..{{ commitCount }}..
+       </a>
+       <a href="{{revisionLink branchHash}}" title="Show branch tip">
+         {{> rev-id hash=branchHash}}
+       </a>
+      {{else}}
+        (no results yet)
+      {{/if}}
+     </td>
+     <td class="col-md-2">
+       <strong>{{ @key }}</strong>
+     </td>
+     <td class="col-md-4">
+       {{#with (lookup ../revisions branchHash)}}
+         {{ summary.gitSubject }}
+       {{/with}}
+     </td>
+     <td class="col-md-2 text-right">
+      {{> summary-icons branchStats}}
+     </td>
+    </tr>
    {{/each_branch}}
   </table>
 </script>

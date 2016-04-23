@@ -202,15 +202,15 @@ shakeMain = do
     let pred h = do { hist <- history; findPred logSource hist h }
     let predOrSelf h = do { hist <- history; findPredOrSelf logSource hist h }
     let recent n h = do { hist <- history; findRecent logSource hist n h }
+    let predOrSelf' h = do
+        pred <- predOrSelf h
+        case pred of Just pred -> return pred
+                     Nothing -> fail $ h ++ " has no parent with logs?"
 
     "site/out/latest.txt" *> \ out -> do
         [head] <- readFileLines "site/out/head.txt"
-        latestM <- predOrSelf head
-        case latestM of
-           Just latest ->
-                writeFileChanged out latest
-           Nothing ->
-                fail "Head has no parent with logs?"
+        latest <- predOrSelf' head
+        writeFileChanged out latest
 
     "site/out/tags.txt" *> \ out -> do
         alwaysRerun
@@ -274,6 +274,25 @@ shakeMain = do
         Stdout json <- self "GraphReport" (bench : r)
         writeFile' out json
 
+    "site/out/branches//*.mergebase" *> \out -> do
+        let branch = dropDirectory1 (dropDirectory1 (dropDirectory1 (dropExtension out)))
+        mb <- getGitMergeBase "repository" "refs/heads/master" ("refs/heads/"++branch)
+        writeFile' out mb
+
+    "site/out/branches//*.json" *> \out -> do
+        let branch = dropDirectory1 (dropDirectory1 (dropDirectory1 (dropExtension out)))
+
+        branchHead <- getGitReference "repository" ("refs/heads/" ++ branch)
+        branchHead <- predOrSelf' branchHead
+
+        mergeBase <- readFile' $ branchMergebaseOf branch
+        mergeBase <- predOrSelf' mergeBase
+
+        need [resultsOf branchHead, resultsOf mergeBase]
+
+        Stdout json <- self "BranchReport" [branch, branchHead, mergeBase]
+        writeFile' out json
+
     "site/out/reports/*.json" *> \out -> do
         let hash = takeBaseName out
         need [resultsOf hash]
@@ -296,21 +315,25 @@ shakeMain = do
         recentCommits <- recent cGRAPH_HISTORY latest
 
         tags <- readFileLines "site/out/tags.txt"
-        tagsAndHashes <- forM tags $ \t -> do
-            h <- getGitReference "repository" ("refs/tags/" ++ t)
-            return $ (t, h)
+        tagsHashes <- forM tags $ \t -> do
+            getGitReference "repository" ("refs/tags/" ++ t)
 
         branches <- readFileLines "site/out/branches.txt"
-        branchesAndHashes <- forM branches $ \t -> do
-            h <- getGitReference "repository" ("refs/heads/" ++ t)
-            return $ (t, h)
+        branchHashes <- forM branches $ \branch -> do
+            getGitReference "repository" ("refs/heads/" ++ branch)
+
+        need $ map branchSummaryOf branches
+        branchesData <- forM branches $ \branch -> do
+            json <- liftIO $ LBS.readFile (branchSummaryOf branch)
+            case eitherDecode json of
+                Left e -> fail e
+                Right rep -> return (rep :: Value)
 
         let o = object
-                [ T.pack "tags" .= object [ (T.pack t .= h) | (t,h) <- tagsAndHashes ]
-                , T.pack "branches" .= object [ (T.pack t .= h) | (t,h) <- branchesAndHashes ]
+                [ T.pack "tags" .= object [ (T.pack t .= h) | (t,h) <- zip tags tagsHashes ]
                 ]
         liftIO $ LBS.writeFile out (encode o)
-        extraCommits <- filterM (doesLogExist logSource) (map snd tagsAndHashes ++ map snd branchesAndHashes)
+        extraCommits <- filterM (doesLogExist logSource) (tagsHashes ++ branchHashes)
 
         let revs = nub $ recentCommits ++ extraCommits
 
@@ -321,7 +344,8 @@ shakeMain = do
             case eitherDecode json of
                 Left e -> fail e
                 Right rep -> return (rep :: Value)
-        liftIO $ LBS.writeFile out (encode (merges (o:g)))
+
+        liftIO $ LBS.writeFile out (encode (merges (o : branchesData ++ g)))
     want ["site/out/latest-summaries.json"]
 
     "site/out/graph-summaries.json" *> \out -> do

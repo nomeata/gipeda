@@ -27,6 +27,7 @@ data GlobalReport = GlobalReport
     , benchmarks :: Maybe (M.Map BenchName ())
     , revisions :: Maybe (M.Map Hash RevReport)
     , benchGroups :: Maybe [BenchGroup]
+    , branches :: Maybe (M.Map BranchName BranchReport)
     }
 
 instance ToJSON GlobalReport where
@@ -34,14 +35,15 @@ instance ToJSON GlobalReport where
         ( "settings"    .=? settings ) ++
         ( "benchmarks"  .=? benchmarks ) ++
         ( "revisions"   .=? revisions ) ++
-        ( "benchGroups" .=? benchGroups )
+        ( "benchGroups" .=? benchGroups ) ++
+        ( "branches"    .=? branches )
       where
         k .=? Just v  = [ k .= toJSON v ]
         _ .=? Nothing = []
 
 
 emptyGlobalReport :: GlobalReport
-emptyGlobalReport = GlobalReport Nothing Nothing Nothing Nothing
+emptyGlobalReport = GlobalReport Nothing Nothing Nothing Nothing Nothing
 
 
 data SummaryStats = SummaryStats
@@ -81,6 +83,17 @@ data RevReport = RevReport
  deriving (Generic)
 instance ToJSON RevReport
 instance FromJSON RevReport
+
+data BranchReport = BranchReport
+    { branchHash :: Hash
+    , mergeBaseHash :: Hash
+    , branchStats :: SummaryStats
+    , commitCount :: Int
+    }
+
+ deriving (Generic)
+instance ToJSON BranchReport
+instance FromJSON BranchReport
 
 data ChangeType = Improvement | Boring | Regression
  deriving (Eq, Generic)
@@ -240,6 +253,24 @@ toGroup n res = BenchGroup
         }
     }
 -}
+
+createBranchReport ::
+    S.Settings -> Hash -> Hash ->
+    ResultMap -> ResultMap ->
+    Int ->
+    BranchReport
+createBranchReport settings this other thisM otherM commitCount = BranchReport
+    { branchHash = this
+    , mergeBaseHash = other
+    , branchStats = toSummaryStats $ M.elems results
+    , commitCount = commitCount
+    }
+  where
+    results = M.fromList
+        [ (name, toResult s name value (M.lookup name otherM))
+        | (name, value) <- M.toAscList thisM
+        , let s = S.benchSettings settings name
+        ]
 
 createReport ::
     S.Settings -> Hash -> [Hash] ->

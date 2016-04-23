@@ -38,4 +38,19 @@ revReportMain (this:parents) = do
     let doc = emptyGlobalReport { revisions = Just (M.singleton this rep) }
 
     BS.putStr (encode doc)
-    
+
+branchReportMain :: [String]-> IO ()
+branchReportMain [branchName, this, other] = do
+    settings <- S.readSettings "gipeda.yaml"
+
+    thisM <- readCSV this
+    otherM <- readCSV other
+
+    log <- fromStdout <$> git ["log", "--oneline", other ++ ".."++ this]
+    let commits = length (lines log)
+
+    let rep = createBranchReport settings this other thisM otherM commits
+    let doc = emptyGlobalReport { branches = Just (M.singleton branchName rep) }
+    BS.putStr (encode doc)
+
+

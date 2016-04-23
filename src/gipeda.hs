@@ -37,6 +37,7 @@ main = do
         "JsonSettings":_      -> jsonSettingsMain
         "Summary":opts        -> summaryMain opts
         "RevReport":opts      -> revReportMain opts
+        "BranchReport":opts   -> branchReportMain opts
         "GraphReport":opts    -> graphReportMain opts
         "WithLatestLogs":opts -> withLatestLogsMain opts
         "BenchNames":opts     -> benchNamesMain opts

@@ -250,10 +250,10 @@ Handlebars.registerHelper('each_unnaturally', function(context,options){
 Handlebars.registerHelper('each_branch', function(context,options){
     var output = '';
     if (context) {
-	jQuery.map(context, function (b,i) { return {branchHash: b, branchName: i}; })
+	jQuery.map(context, function (b,i) { return {branchData: b, branchName: i}; })
             .sort(function(a,b) {
-                revA = data.revisions[a.branchHash];
-                revB = data.revisions[b.branchHash];
+                revA = data.revisions[a.branchData.branchHash];
+                revB = data.revisions[b.branchData.branchHash];
 	        if (revA && revB) {
                     return revB.summary.gitDate - revA.summary.gitDate;
                 }
@@ -265,7 +265,7 @@ Handlebars.registerHelper('each_branch', function(context,options){
                 }
                 return naturalSort(a.branchName, b.branchName);
             }).map(function (b,i) {
-                output += options.fn(b.branchHash, {data: {key: b.branchName, index: i}});
+                output += options.fn(b.branchData, {data: {key: b.branchName, index: i}});
             });
     }
     return output;
