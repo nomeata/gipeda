@@ -27,6 +27,7 @@ import BenchmarksInCSV
 import qualified BenchmarkSettings as S
 import JsonUtils
 import EmbeddedFiles
+import ReportTypes
 
 {- Global settings -}
 cGRAPH_HISTORY :: Integer
@@ -283,15 +284,19 @@ shakeMain = do
         let branch = dropDirectory1 (dropDirectory1 (dropDirectory1 (dropExtension out)))
 
         branchHead <- getGitReference "repository" ("refs/heads/" ++ branch)
-        branchHead <- predOrSelf' branchHead
+        branchHeadM <- predOrSelf branchHead
 
         mergeBase <- readFile' $ branchMergebaseOf branch
-        mergeBase <- predOrSelf' mergeBase
+        mergeBaseM <- predOrSelf mergeBase
 
-        need [resultsOf branchHead, resultsOf mergeBase]
-
-        Stdout json <- self "BranchReport" [branch, branchHead, mergeBase]
-        writeFile' out json
+        case (branchHeadM, mergeBaseM) of
+            (Just branchHead, Just mergeBase) -> do
+                need [resultsOf branchHead, resultsOf mergeBase]
+                Stdout json <- self "BranchReport" [branch, branchHead, mergeBase]
+                writeFile' out json
+            _ -> do
+                -- Write out nothing here, to ignore the branch
+                liftIO $ LBS.writeFile out (encode emptyGlobalReport)
 
     "site/out/reports/*.json" *> \out -> do
         let hash = takeBaseName out
