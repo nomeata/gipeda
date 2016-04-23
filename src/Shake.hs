@@ -10,6 +10,7 @@ import Control.Monad
 import qualified Data.Map as M
 import Data.Functor
 import Data.List
+import Data.Maybe
 import System.IO.Extra (newTempFile)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as LBS
@@ -325,7 +326,7 @@ shakeMain = do
 
         branches <- readFileLines "site/out/branches.txt"
         branchHashes <- forM branches $ \branch -> do
-            getGitReference "repository" ("refs/heads/" ++ branch)
+            getGitReference "repository" ("refs/heads/" ++ branch) 
 
         need $ map branchSummaryOf branches
         branchesData <- forM branches $ \branch -> do
@@ -338,7 +339,8 @@ shakeMain = do
                 [ T.pack "tags" .= object [ (T.pack t .= h) | (t,h) <- zip tags tagsHashes ]
                 ]
         liftIO $ LBS.writeFile out (encode o)
-        extraCommits <- filterM (doesLogExist logSource) (tagsHashes ++ branchHashes)
+        extraCommits <-
+	    catMaybes <$> mapM predOrSelf(tagsHashes ++ branchHashes)
 
         let revs = nub $ recentCommits ++ extraCommits
 
