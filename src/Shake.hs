@@ -14,6 +14,7 @@ import System.IO.Extra (newTempFile)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as LBS
 import qualified System.Directory
+import System.Directory (getPermissions, setPermissions, setOwnerExecutable)
 import System.Environment (getExecutablePath)
 import Data.Aeson
 import qualified Data.Text as T
@@ -25,6 +26,7 @@ import ParentMap
 import BenchmarksInCSV
 import qualified BenchmarkSettings as S
 import JsonUtils
+import EmbeddedFiles
 
 {- Global settings -}
 cGRAPH_HISTORY :: Integer
@@ -79,6 +81,13 @@ findRecent logSource m n h = do
 newtype LimitRecent = LimitRecent ()
     deriving (Show,Typeable,Eq,Hashable,Binary,NFData)
 
+newtype GetIndexHTMLFile = GetIndexHTMLFile ()
+    deriving (Show,Typeable,Eq,Hashable,Binary,NFData)
+newtype GetGipedaJSFile = GetGipedaJSFile ()
+    deriving (Show,Typeable,Eq,Hashable,Binary,NFData)
+newtype GetInstallJSLibsScript = GetInstallJSLibsScript ()
+    deriving (Show,Typeable,Eq,Hashable,Binary,NFData)
+
 data LogSource = FileSystem | BareGit | NoLogs deriving Show
 
 determineLogSource :: IO LogSource
@@ -122,6 +131,38 @@ shakeMain = do
         withLogs <- filterM (doesLogExist logSource) hashes
         need $ map summaryOf withLogs
     want ["summaries"]
+
+    getIndexHTMLFile <- addOracle $ \(GetIndexHTMLFile _) -> do
+        return indexHtmlFile
+    "site/index.html" *> \out -> do
+        content <- getIndexHTMLFile (GetIndexHTMLFile ())
+        liftIO $ do
+            marked <- isMarkedFile out
+            when marked $ BS.writeFile out content
+    want ["site/index.html"]
+
+    getGipedaJSFile <- addOracle $ \(GetGipedaJSFile _) -> do
+        return gipedaJSFile
+    "site/js/gipeda.js" *> \out -> do
+        content <- getGipedaJSFile (GetGipedaJSFile ())
+        liftIO $ do
+            marked <- isMarkedFile out
+            when marked $ BS.writeFile out content
+    want ["site/js/gipeda.js"]
+
+    getInstallJSLibsScript <- addOracle $ \(GetInstallJSLibsScript _) -> do
+        return installJSLibsScript
+    "install-jslibs.sh" *> \out -> do
+        content <- getInstallJSLibsScript (GetInstallJSLibsScript ())
+        liftIO $ do
+            marked <- isMarkedFile out
+            when marked $ do
+                BS.writeFile out content
+                p <- getPermissions out
+                setPermissions out (setOwnerExecutable True p)
+                cmd "./install-jslibs.sh"
+    want ["install-jslibs.sh"]
+
 
     "site/out/head.txt" *> \ out -> do
         alwaysRerun

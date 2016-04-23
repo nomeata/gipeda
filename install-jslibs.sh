@@ -3,6 +3,7 @@
 set -e
 set -x
 
+mkdir -p site/js
 cd site/js
 test -e signals.min.js ||
 	wget -c https://raw.githubusercontent.com/millermedeiros/js-signals/master/dist/signals.min.js
