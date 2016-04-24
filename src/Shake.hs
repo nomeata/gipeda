@@ -1,9 +1,8 @@
 {-# LANGUAGE DeriveDataTypeable, GeneralizedNewtypeDeriving, NondecreasingIndentation #-}
 module Shake where
 
-import Prelude hiding ((*>))
-
-import Development.Shake hiding (withTempFile)
+import Development.Shake hiding (withTempFile, (%>))
+import qualified Development.Shake as S
 import Development.Shake.FilePath
 import Development.Shake.Classes
 import Control.Monad
@@ -36,13 +35,13 @@ cGRAPH_HISTORY = 50
 
 git :: (CmdResult b) => String -> [String] -> Action b
 git gitcmd args = do
-    cmd (Traced $ "git " ++ gitcmd) (words "git -C repository" ++ gitcmd : args)
+    quietly $ cmd (Traced $ "git " ++ gitcmd) (words "git -C repository" ++ gitcmd : args)
 
 self :: (CmdResult b) => String -> [String] -> Action b
 self name args = do
     -- orderOnly ["gipeda"]
     gipeda <- liftIO getExecutablePath
-    cmd (Traced name) gipeda name args
+    quietly $ cmd (Traced name) gipeda name args
 
 gitRange :: Action [String]
 gitRange = do
@@ -136,7 +135,7 @@ shakeMain = do
 
     getIndexHTMLFile <- addOracle $ \(GetIndexHTMLFile _) -> do
         return indexHtmlFile
-    "site/index.html" *> \out -> do
+    "site/index.html" %> \out -> do
         content <- getIndexHTMLFile (GetIndexHTMLFile ())
         liftIO $ do
             marked <- isMarkedFile out
@@ -145,7 +144,7 @@ shakeMain = do
 
     getGipedaJSFile <- addOracle $ \(GetGipedaJSFile _) -> do
         return gipedaJSFile
-    "site/js/gipeda.js" *> \out -> do
+    "site/js/gipeda.js" %> \out -> do
         content <- getGipedaJSFile (GetGipedaJSFile ())
         liftIO $ do
             marked <- isMarkedFile out
@@ -154,7 +153,7 @@ shakeMain = do
 
     getInstallJSLibsScript <- addOracle $ \(GetInstallJSLibsScript _) -> do
         return installJSLibsScript
-    "install-jslibs.sh" *> \out -> do
+    "install-jslibs.sh" %> \out -> do
         content <- getInstallJSLibsScript (GetInstallJSLibsScript ())
         liftIO $ do
             marked <- isMarkedFile out
@@ -166,12 +165,12 @@ shakeMain = do
     want ["install-jslibs.sh"]
 
 
-    "site/out/head.txt" *> \ out -> do
+    "site/out/head.txt" %> \ out -> do
         alwaysRerun
         Stdout stdout <- git "rev-parse" ["master"]
         writeFileChanged out stdout
 
-    "site/out/heads.txt" *> \ out -> do
+    "site/out/heads.txt" %> \ out -> do
         tags <- readFileLines "site/out/tags.txt"
         tagHashes <- forM tags $ \t -> do
             getGitReference "repository" ("refs/tags/" ++ t)
@@ -186,7 +185,7 @@ shakeMain = do
         writeFileChanged out $ unlines $ heads
 
 
-    "site/out/history.csv" *> \out -> do
+    "site/out/history.csv" %> \out -> do
         heads <- readFileLines "site/out/heads.txt"
 
         s <- liftIO $ S.readSettings "gipeda.yaml"
@@ -209,12 +208,12 @@ shakeMain = do
         case pred of Just pred -> return pred
                      Nothing -> fail $ h ++ " has no parent with logs?"
 
-    "site/out/latest.txt" *> \ out -> do
+    "site/out/latest.txt" %> \ out -> do
         [head] <- readFileLines "site/out/head.txt"
         latest <- predOrSelf' head
         writeFileChanged out latest
 
-    "site/out/tags.txt" *> \ out -> do
+    "site/out/tags.txt" %> \ out -> do
         alwaysRerun
 
         need ["gipeda.yaml"]
@@ -227,7 +226,7 @@ shakeMain = do
                 tags' <- filterM (isGitAncestor "repository" (S.start s)) (lines tags)
                 writeFileChanged out (unlines tags')
 
-    "site/out/branches.txt" *> \ out -> do
+    "site/out/branches.txt" %> \ out -> do
         alwaysRerun
 
         need ["gipeda.yaml"]
@@ -250,22 +249,22 @@ shakeMain = do
 
     case logSource of
         BareGit ->
-            "site/out/results/*.csv" *> \out -> do
+            "site/out/results/*.csv" %> \out -> do
                 let hash = takeBaseName out
                 withTempFile $ \fn -> do
                     log <- readGitFile "logs" (hash <.> "log")
                     liftIO $ BS.writeFile fn log
-                    Stdout csv <- cmd "./log2csv" fn
+                    Stdout csv <- quietly $ cmd "./log2csv" fn
                     writeFile' out csv
         FileSystem ->
-            "site/out/results/*.csv" *> \out -> do
+            "site/out/results/*.csv" %> \out -> do
                 let hash = takeBaseName out
                 need [logsOf hash]
-                Stdout csv <- cmd "./log2csv" (logsOf hash)
+                Stdout csv <- quietly $ cmd "./log2csv" (logsOf hash)
                 writeFile' out csv
         NoLogs -> return ()
 
-    "site/out/graphs//*.json" *> \out -> do
+    "site/out/graphs//*.json" %> \out -> do
         let bench = dropDirectory1 (dropDirectory1 (dropDirectory1 (dropExtension out)))
 
         [latest] <- readFileLines "site/out/latest.txt"
@@ -276,12 +275,12 @@ shakeMain = do
         Stdout json <- self "GraphReport" (bench : r)
         writeFile' out json
 
-    "site/out/branches//*.mergebase" *> \out -> do
+    "site/out/branches//*.mergebase" %> \out -> do
         let branch = dropDirectory1 (dropDirectory1 (dropDirectory1 (dropExtension out)))
         mb <- getGitMergeBase "repository" "refs/heads/master" ("refs/heads/"++branch)
         writeFile' out mb
 
-    "site/out/branches//*.json" *> \out -> do
+    "site/out/branches//*.json" %> \out -> do
         let branch = dropDirectory1 (dropDirectory1 (dropDirectory1 (dropExtension out)))
 
         branchHead <- getGitReference "repository" ("refs/heads/" ++ branch)
@@ -299,7 +298,7 @@ shakeMain = do
                 -- Write out nothing here, to ignore the branch
                 liftIO $ LBS.writeFile out (encode emptyGlobalReport)
 
-    "site/out/reports/*.json" *> \out -> do
+    "site/out/reports/*.json" %> \out -> do
         let hash = takeBaseName out
         need [resultsOf hash]
 
@@ -309,14 +308,14 @@ shakeMain = do
         Stdout json <- self "RevReport" (hash : [h | Just h <- return pred])
         writeFile' out json
 
-    "site/out/summaries/*.json" *> \out -> do
+    "site/out/summaries/*.json" %> \out -> do
         let hash = takeBaseName out
         need [reportOf hash]
 
         Stdout json <- self "Summary" [hash]
         writeFile' out json
 
-    "site/out/latest-summaries.json" *> \out -> do
+    "site/out/latest-summaries.json" %> \out -> do
         [latest] <- readFileLines "site/out/latest.txt"
         recentCommits <- recent cGRAPH_HISTORY latest
 
@@ -355,7 +354,7 @@ shakeMain = do
         liftIO $ LBS.writeFile out (encode (merges (o : branchesData ++ g)))
     want ["site/out/latest-summaries.json"]
 
-    "site/out/graph-summaries.json" *> \out -> do
+    "site/out/graph-summaries.json" %> \out -> do
         [latest] <- readFileLines "site/out/latest.txt"
         need [resultsOf latest]
         b <- liftIO $ benchmarksInCSVFile (resultsOf latest)
@@ -365,7 +364,7 @@ shakeMain = do
         writeFile' out json
     want ["site/out/graph-summaries.json"]
 
-    "site/out/benchNames.json" *> \out -> do
+    "site/out/benchNames.json" %> \out -> do
         [latest] <- readFileLines "site/out/latest.txt"
         need [resultsOf latest]
         b <- liftIO $ benchmarksInCSVFile (resultsOf latest)
@@ -377,7 +376,7 @@ shakeMain = do
     want ["site/out/benchNames.json"]
 
 
-    "site/out/all-summaries.json" *> \out -> do
+    "site/out/all-summaries.json" %> \out -> do
         hashes <- gitRange
         revs <- filterM (doesLogExist logSource) hashes
         need (map summaryOf revs)
@@ -390,7 +389,7 @@ shakeMain = do
         liftIO $ LBS.writeFile out (encode (merges g))
     want ["site/out/all-summaries.json"]
 
-    "site/out/settings.json" *> \out -> do
+    "site/out/settings.json" %> \out -> do
         need ["gipeda.yaml"]
 
         Stdout json <- self "JsonSettings" []
@@ -400,6 +399,14 @@ shakeMain = do
     phony "clean" $ do
         removeFilesAfter "site/out" ["//*"]
 
+
+-- | Nicer logging
+(%>) :: FilePattern -> (FilePath -> Action ()) -> Rules () 
+pat %> act = pat S.%> act'
+  where
+    act' out = do
+        putNormal $ "# " ++ out
+        act out
 
 -- | Create a temporary file in the temporary directory. The file will be deleted
 --   after the action completes (provided the file is not still open).
