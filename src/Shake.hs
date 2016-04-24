@@ -1,8 +1,8 @@
 {-# LANGUAGE DeriveDataTypeable, GeneralizedNewtypeDeriving, NondecreasingIndentation #-}
 module Shake where
 
-import Development.Shake hiding (withTempFile, (%>))
-import qualified Development.Shake as S
+import Development.Shake.Fancy hiding (withTempFile)
+import qualified Development.Shake.Fancy as S
 import Development.Shake.FilePath
 import Development.Shake.Classes
 import Control.Monad
@@ -35,13 +35,13 @@ cGRAPH_HISTORY = 50
 
 git :: (CmdResult b) => String -> [String] -> Action b
 git gitcmd args = do
-    quietly $ cmd (Traced $ "git " ++ gitcmd) (words "git -C repository" ++ gitcmd : args)
+    cmdWrap ("git " ++ gitcmd) $ cmd (words "git -C repository" ++ gitcmd : args)
 
 self :: (CmdResult b) => String -> [String] -> Action b
 self name args = do
     -- orderOnly ["gipeda"]
     gipeda <- liftIO getExecutablePath
-    quietly $ cmd (Traced name) gipeda name args
+    cmdWrap name $ cmd gipeda name args
 
 gitRange :: Action [String]
 gitRange = do
@@ -58,7 +58,7 @@ needIfThere files = do
     return existing
 
 doesLogExist :: LogSource -> Hash -> Action Bool
-doesLogExist BareGit    hash = doesGitFileExist "logs" (hash <.> "log")
+doesLogExist BareGit    hash = liftAction $ doesGitFileExist "logs" (hash <.> "log")
 doesLogExist FileSystem hash = doesFileExist (logsOf hash)
 doesLogExist NoLogs     hash = doesFileExist (resultsOf hash)
 
@@ -173,13 +173,13 @@ shakeMain = do
     "site/out/heads.txt" %> \ out -> do
         tags <- readFileLines "site/out/tags.txt"
         tagHashes <- forM tags $ \t -> do
-            getGitReference "repository" ("refs/tags/" ++ t)
+            liftAction $ getGitReference "repository" ("refs/tags/" ++ t)
 
         branches <- readFileLines "site/out/branches.txt"
         branchHashes <- forM branches $ \t -> do
-            getGitReference "repository" ("refs/heads/" ++ t)
+            liftAction $ getGitReference "repository" ("refs/heads/" ++ t)
 
-        masterHash <- getGitReference "repository" "refs/heads/master"
+        masterHash <- liftAction $ getGitReference "repository" "refs/heads/master"
 
         let heads = nub $ masterHash : tagHashes ++ branchHashes
         writeFileChanged out $ unlines $ heads
@@ -223,7 +223,7 @@ shakeMain = do
                 writeFileChanged out ""
             Just pattern -> do
                 Stdout tags <- git "tag" ["-l", pattern]
-                tags' <- filterM (isGitAncestor "repository" (S.start s)) (lines tags)
+                tags' <- filterM (liftAction . isGitAncestor "repository" (S.start s)) (lines tags)
                 writeFileChanged out (unlines tags')
 
     "site/out/branches.txt" %> \ out -> do
@@ -236,8 +236,8 @@ shakeMain = do
                 writeFileChanged out ""
             Just pattern -> do
                 Stdout branches <- git "branch" ["--list", pattern]
-                branches <- filterM (isGitAncestor "repository" (S.start s)) (map (drop 2) $ lines branches)
-                branches <- filterM (\b -> not <$> isGitAncestor "repository" b "master") branches
+                branches <- filterM (liftAction . isGitAncestor "repository" (S.start s)) (map (drop 2) $ lines branches)
+                branches <- filterM (\b -> liftAction $ not <$> isGitAncestor "repository" b "master") branches
                 writeFileChanged out (unlines branches)
 
     "graphs" ~> do
@@ -252,15 +252,15 @@ shakeMain = do
             "site/out/results/*.csv" %> \out -> do
                 let hash = takeBaseName out
                 withTempFile $ \fn -> do
-                    log <- readGitFile "logs" (hash <.> "log")
+                    log <- liftAction $ readGitFile "logs" (hash <.> "log")
                     liftIO $ BS.writeFile fn log
-                    Stdout csv <- quietly $ cmd "./log2csv" fn
+                    Stdout csv <- cmdWrap "log2csv" $ cmd "./log2csv" fn
                     writeFile' out csv
         FileSystem ->
             "site/out/results/*.csv" %> \out -> do
                 let hash = takeBaseName out
                 need [logsOf hash]
-                Stdout csv <- quietly $ cmd "./log2csv" (logsOf hash)
+                Stdout csv <- cmdWrap "log2csv" $ cmd "./log2csv" (logsOf hash)
                 writeFile' out csv
         NoLogs -> return ()
 
@@ -277,13 +277,13 @@ shakeMain = do
 
     "site/out/branches//*.mergebase" %> \out -> do
         let branch = dropDirectory1 (dropDirectory1 (dropDirectory1 (dropExtension out)))
-        mb <- getGitMergeBase "repository" "refs/heads/master" ("refs/heads/"++branch)
+        mb <- liftAction $ getGitMergeBase "repository" "refs/heads/master" ("refs/heads/"++branch)
         writeFile' out mb
 
     "site/out/branches//*.json" %> \out -> do
         let branch = dropDirectory1 (dropDirectory1 (dropDirectory1 (dropExtension out)))
 
-        branchHead <- getGitReference "repository" ("refs/heads/" ++ branch)
+        branchHead <- liftAction $ getGitReference "repository" ("refs/heads/" ++ branch)
         branchHeadM <- predOrSelf branchHead
 
         mergeBase <- readFile' $ branchMergebaseOf branch
@@ -321,11 +321,11 @@ shakeMain = do
 
         tags <- readFileLines "site/out/tags.txt"
         tagsHashes <- forM tags $ \t -> do
-            getGitReference "repository" ("refs/tags/" ++ t)
+            liftAction $ getGitReference "repository" ("refs/tags/" ++ t)
 
         branches <- readFileLines "site/out/branches.txt"
         branchHashes <- forM branches $ \branch -> do
-            getGitReference "repository" ("refs/heads/" ++ branch) 
+            liftAction $ getGitReference "repository" ("refs/heads/" ++ branch) 
 
         need $ map branchSummaryOf branches
         branchesData <- forM branches $ \branch -> do
@@ -338,8 +338,7 @@ shakeMain = do
                 [ T.pack "tags" .= object [ (T.pack t .= h) | (t,h) <- zip tags tagsHashes ]
                 ]
         liftIO $ LBS.writeFile out (encode o)
-        extraCommits <-
-	    catMaybes <$> mapM predOrSelf(tagsHashes ++ branchHashes)
+        extraCommits <- catMaybes <$> mapM predOrSelf (tagsHashes ++ branchHashes)
 
         let revs = nub $ recentCommits ++ extraCommits
 
@@ -398,15 +397,6 @@ shakeMain = do
 
     phony "clean" $ do
         removeFilesAfter "site/out" ["//*"]
-
-
--- | Nicer logging
-(%>) :: FilePattern -> (FilePath -> Action ()) -> Rules () 
-pat %> act = pat S.%> act'
-  where
-    act' out = do
-        putNormal $ "# " ++ out
-        act out
 
 -- | Create a temporary file in the temporary directory. The file will be deleted
 --   after the action completes (provided the file is not still open).
