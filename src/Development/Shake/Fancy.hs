@@ -56,7 +56,6 @@ import Control.Monad.Trans.Reader
 import Control.Monad.IO.Class
 import Control.Monad
 import Data.List
-import Control.Concurrent
 
 -- | Wrapper around 'S.shake'
 shake :: ShakeOptions -> Rules () -> IO ()
@@ -169,8 +168,7 @@ alwaysRerun = liftAction S.alwaysRerun
 
 cmdWrap :: String -> S.Action a -> Action a
 cmdWrap cmd act = do
-        describe (delayed (quietly act)) ("running " ++ cmd)
-  where delayed = (liftIO (threadDelay (1000*1000)) >>)
+        describe (quietly act) ("running " ++ cmd)
 
 
 addOracle :: (S.ShakeValue q, S.ShakeValue a) => (q -> Action a) -> S.Rules (q -> Action a)
