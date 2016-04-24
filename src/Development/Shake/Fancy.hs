@@ -100,15 +100,15 @@ setDefaultMessage = mkAction $ \env ->
    liftIO $ setConsoleRegion (currentRegion env) $
     "  " ++ currentTarget env ++ " processing..."
 
-setMessage :: String -> Action ()
-setMessage doing = mkAction $ \env ->
+setMessage :: Char -> String -> Action ()
+setMessage c doing = mkAction $ \env ->
    liftIO $ setConsoleRegion (currentRegion env) $
-    "… " ++ currentTarget env ++ " " ++ doing
+    [c] ++ " " ++ currentTarget env ++ " " ++ doing
 
 
-describe :: S.Action a -> String -> Action a
-describe act desc = do
-    setMessage desc
+describe :: S.Action a -> Char -> String -> Action a
+describe act symb desc = do
+    setMessage symb desc
     x <- liftAction act
     setDefaultMessage
     return x
@@ -138,39 +138,38 @@ target ~> act = target S.~> wrapAction act target
 -- | Wrapper around 'writeFile''
 writeFile' :: FilePath -> String -> Action ()
 writeFile' filepath content =
-    describe (S.writeFile' filepath content) ("writing " ++ filepath)
+    describe (S.writeFile' filepath content) '→' ("writing " ++ filepath)
 
 -- | Wrapper around 'writeFile''
 writeFileChanged :: FilePath -> String -> Action ()
 writeFileChanged filepath content =
-    describe (S.writeFileChanged filepath content) ("writing " ++ filepath)
+    describe (S.writeFileChanged filepath content) '→' ("writing " ++ filepath)
 
 readFileLines :: FilePath -> Action [String]
 readFileLines filepath =
-    describe (S.readFileLines filepath) ("reading " ++ filepath)
+    describe (S.readFileLines filepath) '←' ("reading " ++ filepath)
 
 doesFileExist :: FilePath -> Action Bool
 doesFileExist filepath = liftAction $ S.doesFileExist filepath
 
 need :: [FilePath] -> Action ()
 need filepaths =
-    describe (S.need filepaths) ("waiting for " ++ take 60 (intercalate ", " filepaths))
+    describe (S.need filepaths) '…' ("waiting for " ++ take 60 (intercalate ", " filepaths))
 
 readFile' :: FilePath -> Action String
 readFile' x = need [x] >> liftIO (readFile x)
 
 orderOnly :: [FilePath] -> Action ()
 orderOnly filepaths =
-    describe (S.orderOnly filepaths) ("waiting for " ++ take 60 (intercalate ", " filepaths))
+    describe (S.orderOnly filepaths) '…' ("waiting for " ++ take 60 (intercalate ", " filepaths))
 
 
 alwaysRerun :: Action ()
 alwaysRerun = liftAction S.alwaysRerun
 
 cmdWrap :: String -> S.Action a -> Action a
-cmdWrap cmd act = do
-        describe (quietly act) ("running " ++ cmd)
-
+cmdWrap cmd act =
+    describe (quietly act) '!' ("running " ++ cmd)
 
 addOracle :: (S.ShakeValue q, S.ShakeValue a) => (q -> Action a) -> S.Rules (q -> Action a)
 addOracle action = do
