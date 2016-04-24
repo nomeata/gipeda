@@ -55,6 +55,7 @@ import System.Console.Regions
 import Control.Monad.Trans.Reader
 import Control.Monad.IO.Class
 import Control.Monad
+import Control.Applicative
 import Data.List
 
 -- | Wrapper around 'S.shake'
