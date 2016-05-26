@@ -41,7 +41,10 @@ matrix:
 before_install:
  - mkdir -p ~/.local/bin
  - export PATH=~/.local/bin:$PATH
- - export STACK_YAML=stack-${STACK_RESOLVER}.yaml
+ - if [ "$STACK_RESOLVER" == "" ];
+   then STACK=stack;
+   else STACK="stack --resolver=$STACK_RESOLVER"
+   fi
  
  - wget https://github.com/commercialhaskell/stack/releases/download/v1.0.4/stack-1.0.4.2-linux-x86_64.tar.gz
  - tar xvf stack-1.0.4.2-linux-x86_64.tar.gz
@@ -57,8 +60,8 @@ install:
 # Here starts the actual work to be performed for the package under test; any command which exits with a non-zero exit code causes the build to fail.
 script:
  - if [ -f configure.ac ]; then autoreconf -i; fi
- - stack test --no-terminal
- - stack benchmark 
+ - $STACK test --no-terminal
+ - $STACK benchmark 
  - cabal check
  - cabal sdist   # tests that a source-distribution can be generated
 
