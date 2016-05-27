@@ -36,7 +36,13 @@ matrix:
     - env: STACK_RESOLVER=ghc-7.8
     - env: STACK_RESOLVER=ghc-7.10
     - env: STACK_RESOLVER=nightly
-      
+
+    # This one is failing with:
+    #  /tmp/stack4926/gitlib-libgit2-2.2.0.1/Git/Libgit2/Types.hs:51:21:
+    #   Not in scope: type constructor or class ‘MonadThrow’
+    # Joachim can decide if he wants to support 7.8.4:
+    - env: STACK_RESOLVER=lts-2.22
+           STACK_YAML=stack-lts-2.22.yaml      
 
 # Note: the distinction between `before_install` and `install` is not important.
 before_install:
