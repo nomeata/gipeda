@@ -1,0 +1,44 @@
+flags: {}
+extra-package-dbs: []
+packages:
+- '.'
+
+# This isn't a great way to support LTS-2.22, but it is GHC 7.8 at least:
+extra-deps:
+- StateVar-1.1.0.4
+- adjunctions-4.3
+- base-orphans-0.5.4
+- bifunctors-5.3
+- bindings-DSL-1.0.23
+- comonad-5
+- concurrent-output-1.7.6
+- conduit-1.2.6.6
+- conduit-combinators-1.0.3.1
+- conduit-extra-1.1.13.1
+- contravariant-1.4
+- distributive-0.5.0.2
+- exceptions-0.8.2.1
+- failure-0.2.0.3
+- fast-logger-2.4.6
+- file-embed-0.0.10
+- free-4.12.4
+- gitlib-3.1.1
+- gitlib-libgit2-2.2.0.1
+- kan-extensions-5.0.1
+- keys-3.11
+- mmorph-1.0.6
+- mono-traversable-0.10.2
+- mtl-2.2.1
+- pointed-5
+- primitive-0.6.1.0
+- profunctors-5.2
+- resourcet-1.1.7.4
+- semigroupoids-5.0.1
+- transformers-0.5.2.0
+- transformers-compat-0.5.1.4
+- unix-time-0.3.6
+- vector-0.11.0.0
+- vector-algorithms-0.7.0.1
+- vector-instances-3.3.1
+- yaml-0.8.12
+resolver: lts-2.22

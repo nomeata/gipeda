@@ -16,6 +16,7 @@ matrix:
 
     # Test with an older GHC, 7.8.4:
     - env: STACK_RESOLVER=lts-2.22
+           STACK_YAML=stack-lts-2.22.yaml
       addons: {apt: {packages: [libgmp-dev]}}      
       
     # This is nondeterministic; the latest nightly:
