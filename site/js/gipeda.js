@@ -433,7 +433,7 @@ dataViewPrepare = {
 	return rev.benchResults[bn]
       }).filter(function (br) {return br});
       return {
-	groupName: group.groupName,
+	groupName: group.groupName || "Benchmarks",
 	benchResults: benchmarks,
 	groupStats: groupStats(benchmarks),
       };
@@ -461,7 +461,7 @@ dataViewPrepare = {
 	return compareResults(r1,r2);
       }).filter(function (br) {return br});
       return {
-	groupName: group.groupName,
+	groupName: group.groupName || "Benchmarks",
 	benchResults: benchmarks,
 	groupStats: groupStats(benchmarks),
       };
