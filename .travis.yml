@@ -52,6 +52,11 @@ before_install:
    then STACK=stack;
    else STACK="stack --resolver=$STACK_RESOLVER";
    fi
+ # These are expected to be nondeterministic, so try to solve with the latest:
+ - if [ "$STACK_RESOLVER" == ghc-7.8 ] ||
+      [ "$STACK_RESOLVER" == ghc-7.10 ]; 
+   then $STACK solver --update-config ;
+   fi
  - wget https://github.com/commercialhaskell/stack/releases/download/v1.0.4/stack-1.0.4.2-linux-x86_64.tar.gz
  - tar xvf stack-1.0.4.2-linux-x86_64.tar.gz
  - mv -f stack-1.0.4.2-linux-x86_64/stack ~/.local/bin/
