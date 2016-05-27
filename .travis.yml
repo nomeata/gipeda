@@ -16,7 +16,7 @@ matrix:
 
     # Test with an older GHC, 7.8.4:
     - env: STACK_RESOLVER=lts-2.22
-      addons: {apt: {packages: [ghc-7.8.4,happy-1.19.4,alex-3.1.3],sources: [hvr-ghc]}}
+#      addons: {apt: {packages: [ghc-7.8.4,happy-1.19.4,alex-3.1.3],sources: [hvr-ghc]}}
       
     # This is nondeterministic; the latest nightly:
     - env: STACK_RESOLVER=nightly
@@ -25,9 +25,9 @@ matrix:
     # Try to use the very latest packages here, so that we catch
     # failures before they get to stackage:
     - env: STACK_RESOLVER=ghc-7.8
-      addons: {apt: {packages: [ghc-7.8.4,happy-1.19.4,alex-3.1.3],sources: [hvr-ghc]}}
+#      addons: {apt: {packages: [ghc-7.8.4,happy-1.19.4,alex-3.1.3],sources: [hvr-ghc]}}
     - env: STACK_RESOLVER=ghc-7.10
-      addons: {apt: {packages: [ghc-7.10.1,happy-1.19.4,alex-3.1.3],sources: [hvr-ghc]}}
+#      addons: {apt: {packages: [ghc-7.10.1,happy-1.19.4,alex-3.1.3],sources: [hvr-ghc]}}
 
   allow_failures:
     # We should track these failures, but they don't represent a
@@ -53,6 +53,7 @@ before_install:
 install:
  - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH  
  - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
+ - $STACK setup
  - $STACK build
 
 # Here starts the actual work to be performed for the package under test; any command which exits with a non-zero exit code causes the build to fail.
@@ -60,8 +61,8 @@ script:
  - if [ -f configure.ac ]; then autoreconf -i; fi
  - $STACK test --no-terminal
  - $STACK benchmark 
- - cabal check
- - cabal sdist   # tests that a source-distribution can be generated
+ - $STACK exec cabal check
+ - $STACK exec cabal sdist   # tests that a source-distribution can be generated
 
 # The following scriptlet checks that the resulting source distribution can be built & installed
  # - export SRC_TGZ=$(cabal info . | awk '{print $2 ".tar.gz";exit}') ;
