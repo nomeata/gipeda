@@ -61,12 +61,12 @@ before_install:
 install:
  - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH  
  - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
+ - $STACK setup 
  # These two are expected to be nondeterministic, so try to solve with the latest:
  - if [ "$STACK_RESOLVER" == ghc-7.8 ] ||
       [ "$STACK_RESOLVER" == ghc-7.10 ]; 
    then $STACK solver --update-config ;
    fi 
- - $STACK setup
  - $STACK build
  - $STACK build cabal-install
 
