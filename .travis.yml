@@ -16,7 +16,7 @@ matrix:
 
     # Test with an older GHC, 7.8.4:
     - env: STACK_RESOLVER=lts-2.22
-#      addons: {apt: {packages: [ghc-7.8.4,happy-1.19.4,alex-3.1.3],sources: [hvr-ghc]}}
+      addons: {apt: {packages: [libgmp-dev]}}      
       
     # This is nondeterministic; the latest nightly:
     - env: STACK_RESOLVER=nightly
@@ -25,9 +25,9 @@ matrix:
     # Try to use the very latest packages here, so that we catch
     # failures before they get to stackage:
     - env: STACK_RESOLVER=ghc-7.8
-#      addons: {apt: {packages: [ghc-7.8.4,happy-1.19.4,alex-3.1.3],sources: [hvr-ghc]}}
+      addons: {apt: {packages: [libgmp-dev]}}      
     - env: STACK_RESOLVER=ghc-7.10
-#      addons: {apt: {packages: [ghc-7.10.1,happy-1.19.4,alex-3.1.3],sources: [hvr-ghc]}}
+      addons: {apt: {packages: [libgmp-dev]}}
 
   allow_failures:
     # We should track these failures, but they don't represent a
