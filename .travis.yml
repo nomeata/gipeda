@@ -61,7 +61,8 @@ install:
 script:
  - if [ -f configure.ac ]; then autoreconf -i; fi
  - $STACK test --no-terminal
- - $STACK benchmark 
+ - $STACK benchmark
+ - $STACK build cabal-install
  - $STACK exec cabal check
  - $STACK exec cabal sdist   # tests that a source-distribution can be generated
 
