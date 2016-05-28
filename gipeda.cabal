@@ -37,9 +37,6 @@ extra-source-files:
   install-jslibs.sh
 cabal-version:       >=1.10
 
-flag old-gitlib
-  default: False
-
 executable gipeda
   main-is:
       gipeda.hs
@@ -81,22 +78,13 @@ executable gipeda
       yaml                 >= 0.8   && <0.9,
       aeson                >= 0.7   && <0.12,
       scientific           >= 0.3   && <0.4,
-      gitlib               >= 3.1   && <3.2,
+      gitlib               >= 3.1.0.2 && <3.2,
       gitlib-libgit2,
       tagged               >= 0.7   && <0.9,
       extra                >= 1     && <1.5,
       file-embed           >= 0.0.9 && < 0.0.11,
       concurrent-output    >= 1.7   && < 1.8,
       transformers         >= 0.4   && < 0.6
-
-  if flag(old-gitlib)
-      build-depends:
-        gitlib               < 3.1.0.2,
-        -- https://github.com/jwiegley/gitlib/issues/46
-        conduit-combinators  < 1
-  else
-      build-depends:
-        gitlib               >= 3.1.0.2
 
   hs-source-dirs: src
 
