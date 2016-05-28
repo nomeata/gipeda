@@ -51,7 +51,7 @@ Setting it up
 
         git clone  --bare git://git.haskell.org/ghc.git repository
 
- * Download a bunch of JavaScript libraries by runing `./install-jslibs.sh`.	
+ * Download a bunch of JavaScript libraries by running `./install-jslibs.sh`.	
 
 Gipeda does not work without at least some logs, so lets add them.
 
