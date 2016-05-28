@@ -51,7 +51,7 @@ Setting it up
 
         git clone  --bare git://git.haskell.org/ghc.git repository
 
- * Download a bunch of JavaScript libraries by runing `./install-jslibs.sh`.	
+ * Download a bunch of JavaScript libraries by running `./install-jslibs.sh`.	
 
 Gipeda does not work without at least some logs, so lets add them.
 
@@ -80,7 +80,7 @@ With everything in place, you can now run
     ./gipeda
 
 and it will create a bunch of JSON files in `site/out/`.  With `./gipda -j4`
-you can parallize it.
+you can parallelize it.
 
 You should do this everytime a new log file appears in `logs/`. You should also
 make sure your repository is up-to-date, e.g. by running `git -C repository
