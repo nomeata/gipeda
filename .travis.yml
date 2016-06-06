@@ -15,7 +15,7 @@ matrix:
       addons: {apt: {packages: [libgmp-dev]}}
 
     # Some LTS versions worth supporting
-    - env: STACK_RESOLVER=lts-5
+    - env: STACK_RESOLVER=lts-6
            STACK_YAML=stack-lts-6.yaml
       addons: {apt: {packages: [libgmp-dev]}}
     - env: STACK_RESOLVER=lts-5
