@@ -15,8 +15,11 @@ matrix:
       addons: {apt: {packages: [libgmp-dev]}}
 
     # Some LTS versions worth supporting
-    - env: STACK_RESOLVER=lts-6
+    - env: STACK_RESOLVER=lts-5
            STACK_YAML=stack-lts-6.yaml
+      addons: {apt: {packages: [libgmp-dev]}}
+    - env: STACK_RESOLVER=lts-5
+           STACK_YAML=stack-lts-5.yaml
       addons: {apt: {packages: [libgmp-dev]}}
 
     # Test with an older GHC, 7.8.4:
@@ -71,10 +74,11 @@ install:
  - stack --install-ghc install cabal-install 
  # These two are expected to be nondeterministic, so try to solve with the latest:
  - if [ "$STACK_RESOLVER" == ghc-7.8 ] ||
-      [ "$STACK_RESOLVER" == ghc-7.10 ]; 
+      [ "$STACK_RESOLVER" == ghc-7.10 ] ||
+      [ "$STACK_RESOLVER" == nightly ];
    then $STACK solver --update-config ;
-   fi 
- - $STACK build
+   fi
+ - $STACK build --test
 
  
 # Here starts the actual work to be performed for the package under test;
