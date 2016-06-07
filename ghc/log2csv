@@ -12,7 +12,7 @@ for my $filename (@ARGV) {
 
 	for (split /^/, $log) {
 		printf "tests/alloc/$1;$2\n"
-			while (m/^    Actual  +([a-zA-Z0-9_\.-]+)\([a-z]*\) bytes allocated: (\d+)\s*$/g);
+			while (m/^    Actual  +([a-zA-Z0-9_\.-]+) ?\([a-z]*\) bytes allocated: (\d+)\s*$/g);
 
 		printf "testsuite/tests;$1\n"
 			if (m/^ +(\d+) total tests, which gave rise to/);
