@@ -164,6 +164,11 @@ shakeMain = do
                 cmd "./install-jslibs.sh"
     want ["install-jslibs.sh"]
 
+    "site/out/backlog.txt" %> \ out -> do
+        hashes <- gitRange
+        withoutLogs <- filterM ((not <$>) . doesLogExist logSource) hashes
+        writeFileChanged out (unlines withoutLogs)
+    want ["site/out/backlog.txt"]
 
     "site/out/head.txt" %> \ out -> do
         alwaysRerun
