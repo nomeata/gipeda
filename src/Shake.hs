@@ -64,6 +64,7 @@ doesLogExist NoLogs     hash = doesFileExist (resultsOf hash)
 
 findPred, findPredOrSelf :: LogSource -> ParentMap -> Hash -> Action (Maybe Hash)
 findPredOrSelf logSource m h = do
+    liftIO $ putStrLn $ "Testing log of " ++ show h
     ex <- doesLogExist logSource h
     if ex then return (Just h)
           else findPred logSource m h
@@ -208,15 +209,27 @@ shakeMain = do
     let pred h = do { hist <- history; findPred logSource hist h }
     let predOrSelf h = do { hist <- history; findPredOrSelf logSource hist h }
     let recent n h = do { hist <- history; findRecent logSource hist n h }
-    let predOrSelf' h = do
-        pred <- predOrSelf h
-        case pred of Just pred -> return pred
-                     Nothing -> fail $ h ++ " has no parent with logs?"
+    let benchmarksInLatest =  do
+            latest' <- readFileLines "site/out/latest.txt"
+            case latest' of
+                [latest] -> do
+                    need [resultsOf latest]
+                    liftIO $ benchmarksInCSVFile (resultsOf latest)
+                [] -> return []
+                _ -> fail "Broken site/out/latest.txt"
+    let youngestCommits n = do
+            latest' <- readFileLines "site/out/latest.txt"
+            case latest' of
+                [latest] -> recent n latest
+                [] -> return []
+                _ -> fail "Broken site/out/latest.txt"
 
     "site/out/latest.txt" %> \ out -> do
         [head] <- readFileLines "site/out/head.txt"
-        latest <- predOrSelf' head
-        writeFileChanged out latest
+        latest <- predOrSelf head
+        case latest of
+            Just hash -> writeFileChanged out hash
+            Nothing   -> writeFileChanged out ""
 
     "site/out/tags.txt" %> \ out -> do
         alwaysRerun
@@ -246,9 +259,7 @@ shakeMain = do
                 writeFileChanged out (unlines branches)
 
     "graphs" ~> do
-        [latest] <- readFileLines "site/out/latest.txt"
-        need [resultsOf latest]
-        b <- liftIO $ benchmarksInCSVFile (resultsOf latest)
+        b <- benchmarksInLatest
         need (map graphFile b)
     want ["graphs"]
 
@@ -272,9 +283,8 @@ shakeMain = do
     "site/out/graphs//*.json" %> \out -> do
         let bench = dropDirectory1 (dropDirectory1 (dropDirectory1 (dropExtension out)))
 
-        [latest] <- readFileLines "site/out/latest.txt"
         limitRecent <- getLimitRecent (LimitRecent ())
-        r <- recent limitRecent latest
+        r <- youngestCommits limitRecent
         need (map reportOf r)
 
         Stdout json <- self "GraphReport" (bench : r)
@@ -321,8 +331,7 @@ shakeMain = do
         writeFile' out json
 
     "site/out/latest-summaries.json" %> \out -> do
-        [latest] <- readFileLines "site/out/latest.txt"
-        recentCommits <- recent cGRAPH_HISTORY latest
+        recentCommits <- youngestCommits cGRAPH_HISTORY
 
         tags <- readFileLines "site/out/tags.txt"
         tagsHashes <- forM tags $ \t -> do
@@ -359,9 +368,7 @@ shakeMain = do
     want ["site/out/latest-summaries.json"]
 
     "site/out/graph-summaries.json" %> \out -> do
-        [latest] <- readFileLines "site/out/latest.txt"
-        need [resultsOf latest]
-        b <- liftIO $ benchmarksInCSVFile (resultsOf latest)
+        b <- benchmarksInLatest
         need (map graphFile b)
 
         Stdout json <- self "GraphSummaries" b
@@ -369,9 +376,7 @@ shakeMain = do
     want ["site/out/graph-summaries.json"]
 
     "site/out/benchNames.json" %> \out -> do
-        [latest] <- readFileLines "site/out/latest.txt"
-        need [resultsOf latest]
-        b <- liftIO $ benchmarksInCSVFile (resultsOf latest)
+        b <- benchmarksInLatest
 
         need ["gipeda.yaml"]
 
