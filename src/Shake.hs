@@ -167,7 +167,7 @@ shakeMain = do
     "site/out/backlog.txt" %> \ out -> do
         hashes <- gitRange
         withoutLogs <- filterM ((not <$>) . doesLogExist logSource) hashes
-        writeFileChanged out (unlines withoutLogs)
+        writeFile' out (unlines withoutLogs)
     want ["site/out/backlog.txt"]
 
     "site/out/head.txt" %> \ out -> do
