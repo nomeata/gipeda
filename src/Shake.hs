@@ -64,7 +64,6 @@ doesLogExist NoLogs     hash = doesFileExist (resultsOf hash)
 
 findPred, findPredOrSelf :: LogSource -> ParentMap -> Hash -> Action (Maybe Hash)
 findPredOrSelf logSource m h = do
-    liftIO $ putStrLn $ "Testing log of " ++ show h
     ex <- doesLogExist logSource h
     if ex then return (Just h)
           else findPred logSource m h
