@@ -49,7 +49,7 @@ gitRange = do
     let first = S.start s
     heads <- readFileLines "site/out/heads.txt"
     Stdout range <- git "log" $ ["--format=%H","^"++first] ++ heads
-    return $ words range
+    return $ words range ++ [first]
 
 needIfThere :: [FilePath] -> Action [FilePath]
 needIfThere files = do
