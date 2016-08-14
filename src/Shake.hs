@@ -48,8 +48,8 @@ gitRange = do
     s <- liftIO $ S.readSettings "gipeda.yaml"
     let first = S.start s
     heads <- readFileLines "site/out/heads.txt"
-    Stdout range <- git "log" $ ["--format=%H","^"++first] ++ heads
-    return $ words range ++ [first]
+    Stdout range <- git "log" $ ["--format=%H","^"++first++"^@"] ++ heads
+    return $ words range
 
 needIfThere :: [FilePath] -> Action [FilePath]
 needIfThere files = do
@@ -197,7 +197,7 @@ shakeMain = do
         let first = S.start s
 
         Stdout stdout <- git "log" $
-                "--format=%H;%P": ("^"++first) : heads
+                "--format=%H;%P": ("^"++first++"^@") : heads
         writeFileChanged out stdout
     want ["site/out/history.csv"]
 
