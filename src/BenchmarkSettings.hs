@@ -87,7 +87,7 @@ data Settings = Settings
    , revisionInfo :: String
    , diffLink :: Maybe String
    , limitRecent :: Integer
-   , start :: String
+   , start :: Maybe String
    , interestingTags :: Maybe String
    , interestingBranches :: Maybe String
    , benchSettings :: BenchName -> BenchSettings
@@ -99,7 +99,7 @@ instance FromJSON Settings where
                  <*> v .: "revisionInfo"
                  <*> v .: "diffLink"
                  <*> v .: "limitRecent"
-                 <*> v .: "start"
+                 <*> v .:? "start"
                  <*> v .:? "interestingTags"
                  <*> v .:? "interestingBranches"
                  <*> (unS <$> v.: "benchmarks")

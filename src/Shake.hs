@@ -46,10 +46,14 @@ self name args = do
 gitRange :: Action [String]
 gitRange = do
     s <- liftIO $ S.readSettings "gipeda.yaml"
-    let first = S.start s
     heads <- readFileLines "site/out/heads.txt"
-    Stdout range <- git "log" $ ["--format=%H","^"++first++"^@"] ++ heads
+    Stdout range <- git "log" $ ["--format=%H"] ++ excludePreStart s  ++ heads
     return $ words range
+
+excludePreStart :: S.Settings -> [String]
+excludePreStart s = case S.start s of
+    Just hash -> ["^" ++ hash ++ "^@"]
+    Nothing   -> []
 
 needIfThere :: [FilePath] -> Action [FilePath]
 needIfThere files = do
@@ -78,6 +82,11 @@ findRecent logSource m n h = do
     (h:) <$> case pM of
         Nothing -> return []
         Just p ->  findRecent logSource m (n-1) p
+
+descendsFromStart :: S.Settings -> Hash -> Action Bool
+descendsFromStart s hash = case S.start s of
+    Just startHash -> liftAction $ isGitAncestor "repository" startHash hash
+    Nothing        -> return True
 
 newtype LimitRecent = LimitRecent ()
     deriving (Show,Typeable,Eq,Hashable,Binary,NFData)
@@ -194,10 +203,7 @@ shakeMain = do
         heads <- readFileLines "site/out/heads.txt"
 
         s <- liftIO $ S.readSettings "gipeda.yaml"
-        let first = S.start s
-
-        Stdout stdout <- git "log" $
-                "--format=%H;%P": ("^"++first++"^@") : heads
+        Stdout stdout <- git "log" $ ["--format=%H;%P"] ++ excludePreStart s ++ heads
         writeFileChanged out stdout
     want ["site/out/history.csv"]
 
@@ -240,7 +246,7 @@ shakeMain = do
                 writeFileChanged out ""
             Just pattern -> do
                 Stdout tags <- git "tag" ["-l", pattern]
-                tags' <- filterM (liftAction . isGitAncestor "repository" (S.start s)) (lines tags)
+                tags' <- filterM (descendsFromStart s) (lines tags)
                 writeFileChanged out (unlines tags')
 
     "site/out/branches.txt" %> \ out -> do
@@ -253,7 +259,7 @@ shakeMain = do
                 writeFileChanged out ""
             Just pattern -> do
                 Stdout branches <- git "branch" ["--list", pattern]
-                branches <- filterM (liftAction . isGitAncestor "repository" (S.start s)) (map (drop 2) $ lines branches)
+                branches <- filterM (descendsFromStart s) (map (drop 2) $ lines branches)
                 branches <- filterM (\b -> liftAction $ not <$> isGitAncestor "repository" b "master") branches
                 writeFileChanged out (unlines branches)
 
