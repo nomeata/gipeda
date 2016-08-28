@@ -47,7 +47,15 @@ var routes = {
         { regex: /^revision\/([a-f0-9]+)$/,
           viewData: function (match) { return { hash: match[1] }; },
           download: function () {
-            return ['out/benchNames.json','out/reports/' + viewData.hash + '.json'];
+            todo = ['out/benchNames.json','out/reports/' + viewData.hash + '.json'];
+            if (data && data.revisions) {
+                var rev = data.revisions[viewData.hash];
+                if (rev && rev.summary && rev.summary.parents) {
+                    var parentHash = rev.summary.parents[0];
+                    todo.push('out/reports/' + parentHash + '.json');
+                }
+            }
+            return todo;
           },
           url: function (hash) { return "revision/" + hash; },
         },
@@ -105,13 +113,15 @@ function parseRoute (path) {
     viewChanged.dispatch();
 }
 
-viewChanged.add(function () {
+function load_missing_data() {
     if (routes[view].download) {
         d = routes[view].download;
-        if ($.isFunction(d)) {d = d()}
-        d.forEach(function (url) { getJSON(url) });
+        if ($.isFunction(d)) {d = d(); }
+        d.forEach(function (url) { getJSON(url); });
     }
-});
+}
+viewChanged.add(load_missing_data);
+dataChanged.add(load_missing_data);
 
 function handleHashChange(newHash) {
     parseRoute(newHash);
@@ -343,7 +353,7 @@ function setting_for(name) {
         if (benchmark_name_matches(s.match, name)) {
             $.extend(benchSettings, s);
         }
-    })
+    });
 
     return benchSettings;
 }
@@ -351,12 +361,12 @@ function setting_for(name) {
 
 // The following logic should be kept in sync with toResult in ReportTypes.hs
 function compareResults (res1, res2) {
-    if (!res1 && !res2) { return };
+    if (!res1 && !res2) { return; }
 
-    name = res1? res1.name : res2.name;
-    s = setting_for(name);
+    var name = res1? res1.name : res2.name;
+    var s = setting_for(name);
 
-    res = {
+    var res = {
         name: name,
         previous:    res1 ? res1.value : null,
         value:       res2 ? res2.value : null,
@@ -368,9 +378,9 @@ function compareResults (res1, res2) {
 
     if (res1 && res2){
         if (s.type == "integral" || s.type == "float"){
-            if (res1.value == 0 && res2.value == 0) {
+            if (res1.value === 0 && res2.value === 0) {
                 res.change = "=";
-            } else if (res1.value == 0) {
+            } else if (res1.value === 0) {
                 res.change = "+  ∞";
                 res.changeType = "Improvement";
             } else {
@@ -418,26 +428,73 @@ function compareResults (res1, res2) {
     return res;
 }
 
+// A variant of compareResults, for when there is nothing to compare.
+function singleResult (res) {
+    if (!res) { return; }
+    var name = res.name;
+    var s = setting_for(name);
+
+    return  {
+        name: name,
+        previous:    null,
+        value:       res.value,
+        unit:        s.unit,
+        important:   s.important,
+        changeType: "Boring",
+        change:     "",
+    };
+}
+
 // Some views require the data to be prepared in ways that are 
 // too complicated for the template, so lets do it here.
-dataViewPrepare = {
-  'revision': function (data, viewData) {
-    if (!data.benchGroups || !data.revisions) return {};
-    var hash = viewData.hash;
-    var rev = data.revisions[hash];
-    if (!rev) return {};
-    if (!rev.benchResults) return {};
 
-    var groups = data.benchGroups.map(function (group) {
+// revision and compare actually share a lot of logic, the difference is only
+// where the starting commit is from
+function calculate_groups(rev1, rev2) {
+    if (!rev2) return {};
+    if (!rev2.benchResults) return {};
+
+    return data.benchGroups.map(function (group) {
       var benchmarks = group.groupMembers.map(function (bn) {
-	return rev.benchResults[bn]
-      }).filter(function (br) {return br});
+        var r2 = rev2.benchResults[bn];
+        if (rev1 && rev1.benchResults) {
+            var r1 = rev1.benchResults[bn];
+            return compareResults(r1,r2);
+        } else {
+            return singleResult(r2);
+        }
+      }).filter(function (br) {return br;});
       return {
 	groupName: group.groupName || "Benchmarks",
 	benchResults: benchmarks,
 	groupStats: groupStats(benchmarks),
       };
     });
+}
+
+dataViewPrepare = {
+  'revision': function (data, viewData) {
+    if (!data.benchGroups || !data.revisions) return {};
+    var hash = viewData.hash;
+    var rev = data.revisions[hash];
+
+    if (!rev) return {};
+    if (!rev.benchResults) return {};
+
+    var groups;
+    if (rev.summary.parents) {
+        var parentHash = rev.summary.parents[0];
+        var parentRev  = data.revisions[parentHash];
+
+        if (parentRev) {
+            groups = calculate_groups(parentRev, rev);
+        }
+    }
+    // Fallback (no parent, or parent not loaded yet)
+    if (!groups) {
+        groups = calculate_groups(null, rev);
+    }
+
     return {
       rev : rev,
       groups : groups,
@@ -449,30 +506,13 @@ dataViewPrepare = {
     var hash2 = viewData.hash2;
     var rev1 = data.revisions[hash1];
     var rev2 = data.revisions[hash2];
-    if (!rev1) return {};
-    if (!rev1.benchResults) return {};
-    if (!rev2) return {};
-    if (!rev2.benchResults) return {};
-
-    var groups = data.benchGroups.map(function (group) {
-      var benchmarks = group.groupMembers.map(function (bn) {
-	var r1 = rev1.benchResults[bn];
-	var r2 = rev2.benchResults[bn];
-	return compareResults(r1,r2);
-      }).filter(function (br) {return br});
-      return {
-	groupName: group.groupName || "Benchmarks",
-	benchResults: benchmarks,
-	groupStats: groupStats(benchmarks),
-      };
-    });
     return {
       rev1 : rev1,
       rev2 : rev2,
-      groups : groups,
+      groups : calculate_groups(rev1, rev2),
     };
   },
-}
+};
 
 function remember_from_to() {
     settings.compare.from = $('#compare-from').data('rev');

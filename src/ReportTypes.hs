@@ -63,12 +63,18 @@ sumStats = foldl' go (SummaryStats 0 0 0)
             SummaryStats (a + a') (b + b') (c + c')
 -}
 
+data Status = Built | Failed | Waiting
+ deriving (Show, Generic)
+instance ToJSON Status
+instance FromJSON Status
+
 data Summary = Summary
     { hash :: Hash
     , gitDate :: Integer
     , gitSubject :: String
     , stats :: SummaryStats
-    , parents :: [String]
+    , parents :: [Hash]
+--    , status :: Status
     }
  deriving (Generic)
 instance ToJSON Summary
@@ -111,9 +117,6 @@ instance FromJSON BenchGroup
 data BenchResult = BenchResult
     { name :: String
     , value :: BenchValue
-    , previous :: Maybe BenchValue
-    , change :: String
-    , changeType :: ChangeType
     , unit :: String
     , important :: Bool
     }
@@ -126,7 +129,17 @@ instance ToJSON BenchResult where
 instance FromJSON BenchResult where
     parseJSON = genericParseJSON defaultOptions
 
+data BenchComparison = BenchComparison
+    { changeName :: String
+    , change :: String
+    , changeType :: ChangeType
+    , changeImportant :: Bool
+    }
+
 -- A smaller BenchResult
+-- (This is a hack: BenchResult no longer carries a changeType. But it is convenient to
+-- have that in the graph report, for the tallying for the graph summary. But all not very
+-- satisfactory.)
 data GraphPoint = GraphPoint
     { gpValue :: BenchValue
     , gpChangeType :: ChangeType
@@ -142,11 +155,6 @@ instance FromJSON GraphPoint where
 
 graphPointOptions = defaultOptions { fieldLabelModifier = fixup }
   where fixup ('g':'p':c:cs) = toLower c : cs
-
-benchResultToGraphPoint (BenchResult {..}) = GraphPoint
-    { gpValue = value
-    , gpChangeType = changeType
-    }
 
 invertChangeType :: ChangeType -> ChangeType
 invertChangeType Improvement = Regression
@@ -200,17 +208,22 @@ explain s@(S.numberType -> S.IntegralNT)      (I i1) (I i2) = explainInt s i1 i2
 -- even if the user did not set the numberType correctly:
 explain s                                     v1     v2     = explainFloat s (toFloat v1) (toFloat v2)
 
-toResult :: S.BenchSettings -> String -> BenchValue -> Maybe BenchValue -> BenchResult
-toResult s name value prev = BenchResult
-    { name = name
-    , value = value
-    , previous = prev
-    , change = change
-    , changeType = changeType
-    , unit = S.unit s
+toResult :: S.BenchSettings -> String -> BenchValue -> BenchResult
+toResult s name value = BenchResult
+    { name      = name
+    , value     = value
+    , unit      = S.unit s
     , important = S.important s
     }
-  where 
+
+makeComparison :: S.BenchSettings -> String -> BenchValue -> Maybe BenchValue -> BenchComparison
+makeComparison s name value prev = BenchComparison
+    { changeName      = name
+    , change          = change
+    , changeType      = changeType
+    , changeImportant = S.important s
+    }
+  where
     (change, changeType') =
         case prev of
             Just p -> explain s p value
@@ -218,22 +231,20 @@ toResult s name value prev = BenchResult
     changeType | S.smallerIsBetter s = invertChangeType changeType'
                | otherwise           =                  changeType'
 
-toSummaryStats :: [BenchResult] -> SummaryStats
-toSummaryStats res = SummaryStats
-    { totalCount = length res
+toSummaryStats :: [BenchComparison] -> SummaryStats
+toSummaryStats comps = SummaryStats
+    { totalCount = length comps
     , improvementCount = length
-        [ ()
-        | BenchResult { changeType = Improvement, important = True } <- res
-        ]
+        [ () | comp <- importantComps , changeType comp == Improvement ]
     , regressionCount =  length
-        [ ()
-        | BenchResult { changeType = Regression, important = True } <- res
-        ]
+        [ () | comp <- importantComps , changeType comp == Regression ]
     , summaryDesc = andMore 5
-        [ name r ++ ": " ++ change r
-        | r <- res, important r, changeType r `elem` [Improvement, Regression]
+        [ changeName comp ++ ": " ++ change comp
+        | comp <- importantComps
+        , changeType comp `elem` [Improvement, Regression]
         ]
     }
+  where importantComps = filter changeImportant comps
 
 andMore :: Int -> [String] -> String
 andMore _ [] = "–"
@@ -262,12 +273,12 @@ createBranchReport ::
 createBranchReport settings this other thisM otherM commitCount = BranchReport
     { branchHash = this
     , mergeBaseHash = other
-    , branchStats = toSummaryStats $ M.elems results
+    , branchStats = toSummaryStats comparisons
     , commitCount = commitCount
     }
   where
-    results = M.fromList
-        [ (name, toResult s name value (M.lookup name otherM))
+    comparisons =
+        [ makeComparison s name value (M.lookup name otherM)
         | (name, value) <- M.toAscList thisM
         , let s = S.benchSettings settings name
         ]
@@ -277,11 +288,11 @@ createReport ::
     ResultMap -> ResultMap ->
     String -> String -> Integer ->
     RevReport
-createReport settings this parents thisM parentM log subject date = RevReport 
+createReport settings this parents thisM parentM log subject date = RevReport
     { summary = Summary
         { hash = this
         , parents = parents
-        , stats = toSummaryStats $ M.elems results
+        , stats = toSummaryStats comparisons
         , gitSubject = subject
         , gitDate = date
         }
@@ -291,10 +302,15 @@ createReport settings this parents thisM parentM log subject date = RevReport
     }
   where
     results = M.fromList
-        [ (name, toResult s name value (M.lookup name parentM))
+        [ (name, toResult s name value)
+        | (name, value) <- M.toAscList thisM
+        , let s = S.benchSettings settings name
+        ]
+    comparisons =
+        [ makeComparison s name value (M.lookup name parentM)
         | (name, value) <- M.toAscList thisM
         , let s = S.benchSettings settings name
         ]
 
 summarize :: RevReport -> Summary
-summarize (RevReport {..}) =  summary 
+summarize (RevReport {..}) = summary
