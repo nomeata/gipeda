@@ -55,6 +55,6 @@ benchmarks:
     unit: bytes
     group: Testsuite allocations
 
-  - match: "tests/allocs/T6048"
+  - match: "tests/alloc/T6048"
     important: False
 
