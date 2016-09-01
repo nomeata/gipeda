@@ -38,9 +38,6 @@ benchmarks:
     unit: bytes
     group: Nofib allocations
 
-  - match: "nofib/allocs/T6048"
-    important: False
-
   - match: "nofib/time/*"
     unit: seconds
     group: Nofib runtimes
@@ -57,4 +54,7 @@ benchmarks:
   - match: "tests/alloc/*"
     unit: bytes
     group: Testsuite allocations
+
+  - match: "tests/allocs/T6048"
+    important: False
 
