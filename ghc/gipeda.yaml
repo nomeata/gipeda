@@ -2,7 +2,7 @@ title: GHC Speed
 revisionInfo: '<a href="https://git.haskell.org/ghc.git/commitdiff/{{rev}}">View Diff</a> – <a href="https://phabricator.haskell.org/rGHC{{rev}}">Phab</a> – <a href="http://raw.githubusercontent.com/nomeata/ghc-speed-logs/master/{{rev}}.log">View buildlog</a>' 
 diffLink: "https://git.haskell.org/ghc.git/commitdiff/{{rev}}?hp={{base}}"
 limitRecent: 50
-start: 55e7ab1210975e6276f3cab3ac0e1f35bcd772f0
+start: 853cdaea7f8724cd071f4fa7ad6c5377a2a8a6e4
 interestingTags: "*-release"
 interestingBranches: "*"
 
