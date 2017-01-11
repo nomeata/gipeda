@@ -50,11 +50,17 @@ benchmarks:
 
   - match: "nofib/time/circsim"
     threshold: 5
+  - match: "nofib/time/hidden"
+    threshold: 5
 
   - match: "tests/alloc/*"
     unit: bytes
     group: Testsuite allocations
 
   - match: "tests/alloc/T6048"
+    important: False
+  - match: "tests/alloc/T5837"
+    important: False
+  - match: "tests/alloc/T12234"
     important: False
 
