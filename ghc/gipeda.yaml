@@ -63,4 +63,6 @@ benchmarks:
     important: False
   - match: "tests/alloc/T12234"
     important: False
+  - match: "tests/alloc/T12425"
+    threshold: 5
 
