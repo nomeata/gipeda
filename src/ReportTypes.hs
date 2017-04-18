@@ -238,7 +238,7 @@ toSummaryStats comps = SummaryStats
         [ () | comp <- importantComps , changeType comp == Improvement ]
     , regressionCount =  length
         [ () | comp <- importantComps , changeType comp == Regression ]
-    , summaryDesc = andMore 5
+    , summaryDesc = andMore "No significant changes" 5
         [ changeName comp ++ ": " ++ change comp
         | comp <- importantComps
         , changeType comp `elem` [Improvement, Regression]
@@ -246,9 +246,9 @@ toSummaryStats comps = SummaryStats
     }
   where importantComps = filter changeImportant comps
 
-andMore :: Int -> [String] -> String
-andMore _ [] = "–"
-andMore n xs = intercalate "\n" (take n xs) ++ rest
+andMore :: String -> Int -> [String] -> String
+andMore def _ [] = def
+andMore _   n xs = intercalate "\n" (take n xs) ++ rest
   where rest | length xs > n = "\nand " ++ show (length xs - n) ++ " more"
              | otherwise     = ""
 
