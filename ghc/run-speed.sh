@@ -73,6 +73,13 @@ then
    git cherry-pick 03c7dd0941fb4974be54026ef3e4bb97451c3b1f
 fi
 
+if git merge-base --is-ancestor  8ae263ceb3566a7c82336400b09cb8f381217405 $rev &&
+   ! git merge-base --is-ancestor  7b8827ab24a3af8555f1adf250b7b541e41d8f5d $rev
+then
+   echo "In range 8ae263c..7b8827a; applying patch 7b8827a"
+   git cherry-pick 7b8827ab24a3af8555f1adf250b7b541e41d8f5d
+fi
+
 git submodule update --reference ~/all-repo-cache/ --init
 
 say "Identifying"
