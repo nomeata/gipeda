@@ -21,10 +21,8 @@ do
 			continue
 		fi
 
-		if [ "$branchtip" = "refs/remotes/origin/wip/gadtpm" ]
-		then
-			continue
-		fi
+		if [ "$branchtip" = "refs/remotes/origin/wip/gadtpm" ]; then continue; fi
+		if [ "$branchtip" = "refs/remotes/origin/wip/perf-testsuite" ]; then continue; fi
 
 		for rev in $(git -C ghc-master log --format=%H --first-parent $first..$branchtip | tac)
 		do
@@ -44,5 +42,6 @@ do
 			break 2
 		done
 	done
+	echo "Sleeping..."
 	sleep 60 || break
 done
