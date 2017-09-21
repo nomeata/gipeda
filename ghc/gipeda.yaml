@@ -43,6 +43,11 @@ benchmarks:
     group: Nofib runtimes
     type: float
 
+  - match: "nofib/instr/*"
+    unit: seconds
+    group: Nofib instruction counts
+    type: integral
+
   - match: "buildtime/*"
     unit: seconds
     group: Buildtimes
