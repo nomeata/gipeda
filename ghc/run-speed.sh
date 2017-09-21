@@ -51,6 +51,10 @@ function failure {
 }
 trap failure ERR
 
+say "Begin building"
+
+date -R
+
 say "Cloning"
 
 run git clone --reference ~/all-repo-cache/ git://git.haskell.org/ghc "ghc-tmp-$rev"
@@ -132,3 +136,8 @@ say "Cleaning up"
 run cd ..
 run rm -rf "ghc-tmp-$rev"
 run mv "$logfile".tmp "$logfile"
+
+say "Done building"
+
+date -R
+
