@@ -125,7 +125,7 @@ run make -C testsuite fast VERBOSE=4 THREADS=8
 say "Running nofib"
 
 runt make -C nofib boot
-runt make -C nofib NoFibRuns=15
+runt make -C nofib EXTRA_RUNTEST_OPTS=-cachegrind NoFibRuns=1 mode=slow
 
 say "Total space used"
 
