@@ -84,6 +84,13 @@ then
    git cherry-pick 7b8827ab24a3af8555f1adf250b7b541e41d8f5d
 fi
 
+if git merge-base --is-ancestor  063e0b4e5ea53a02713eb48555bbd99d934a3de5 $rev &&
+   ! git merge-base --is-ancestor  e29912125218aa4e874504e7d403e2f97331b8c9 $rev
+then
+   echo "In range 063e0b..e29912; applying patch e29912"
+   git cherry-pick e29912125218aa4e874504e7d403e2f97331b8c9
+fi
+
 git submodule update --reference ~/all-repo-cache/ --init
 
 say "Identifying"
@@ -105,10 +112,18 @@ runt perl boot
 say "Configuring"
 
 echo "Try to match validate settings"
-echo 'GhcHcOpts  = ' >> mk/build.mk # no -Rghc-timing
+echo 'GhcHcOpts  = '                               >> mk/build.mk # no -Rghc-timing
 echo 'GhcLibWays := $(filter v dyn,$(GhcLibWays))' >> mk/build.mk
-echo 'GhcLibHcOpts += -O -dcore-lint'  >> mk/build.mk
-echo 'GhcStage2HcOpts += -O -dcore-lint'  >> mk/build.mk
+echo 'GhcLibHcOpts += -O -dcore-lint'              >> mk/build.mk
+echo 'GhcStage1HcOpts += -O'                       >> mk/build.mk
+echo 'GhcStage2HcOpts += -O -dcore-lint'           >> mk/build.mk
+echo 'SplitObjs          = NO'                     >> mk/build.mk
+echo 'SplitSections      = NO'                     >> mk/build.mk
+echo 'BUILD_PROF_LIBS    = NO'                     >> mk/build.mk
+echo 'HADDOCK_DOCS       = NO'                     >> mk/build.mk
+echo 'BUILD_SPHINX_HTML  = NO'                     >> mk/build.mk
+echo 'BUILD_SPHINX_PDF   = NO'                     >> mk/build.mk
+
 
 runt ./configure
 
@@ -124,8 +139,8 @@ run make -C testsuite fast VERBOSE=4 THREADS=8
 
 say "Running nofib"
 
-runt make -C nofib boot
-runt make -C nofib EXTRA_RUNTEST_OPTS=-cachegrind NoFibRuns=1 mode=slow
+runt make -C nofib boot mode=fast -j8
+runt make -C nofib EXTRA_RUNTEST_OPTS='-cachegrind +RTS -V0 -RTS' NoFibRuns=1 mode=fast -j8
 
 say "Total space used"
 
