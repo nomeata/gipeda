@@ -466,6 +466,8 @@ function calculate_groups(rev1, rev2) {
       }).filter(function (br) {return br;});
       return {
 	groupName: group.groupName || "Benchmarks",
+    unit: group.groupUnit,
+    unitFull: group.groupUnitFull,
 	benchResults: benchmarks,
 	groupStats: groupStats(benchmarks),
       };

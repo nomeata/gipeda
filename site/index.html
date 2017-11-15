@@ -352,7 +352,7 @@ html {
        <div class="panel-heading" role="tab" id="heading-{{@index}}">
         <h4 class="panel-title">
          <a class="accordion-toggle" data-toggle="collapse" href="#table-{{@index}}">
-         {{groupName}}
+         {{groupName}}{{#if unitFull}}, {{unitFull}}{{/if}}
          </a>
         </h4>
        </div>
@@ -471,7 +471,7 @@ html {
        <div class="panel-heading" role="tab" id="heading-{{@index}}">
         <h4 class="panel-title">
          <a class="accordion-toggle" data-toggle="collapse" href="#table-{{@index}}">
-         {{groupName}}
+         {{groupName}}{{#if unitFull}}, {{unitFull}}{{/if}}
          <span class="stats pull-right">
           {{> summary-icons groupStats}}
           <span class="indicator-toggled glyphicon glyphicon-chevron-down text-grey"/>
@@ -579,7 +579,7 @@ html {
        <div class="panel-heading" role="tab" id="heading-{{@index}}">
         <h4 class="panel-title">
          <a class="accordion-toggle" data-toggle="collapse" href="#table-{{@index}}">
-         {{groupName}}
+         {{groupName}}{{#if unitFull}}, {{unitFull}}{{/if}}
          <span class="stats pull-right">
           {{> summary-icons groupStats}}
           <span class="indicator-toggled glyphicon glyphicon-chevron-down text-grey"/>
