@@ -91,6 +91,26 @@ html {
     background-color: #fcf8e3;
 }
 
+.benchmark-table {
+  white-space: nowrap;
+  table-layout: fixed;
+}
+
+.benchmark-name {
+  display: flex;
+}
+
+.benchmark-name-only {
+  display: inline-block;
+  overflow: hidden;
+  flex: 2;
+}
+
+.benchmark-name:hover .benchmark-name-toggle {
+  min-width: 100%;
+  float:right;
+}
+
 .benchmark-name a.graph-link {
     visibility:hidden;
 }
@@ -356,7 +376,11 @@ html {
               "
             >
              <td class="benchmark-name">
-              {{this}}
+              <span class="benchmark-name-only">
+               <span class="benchmark-name-toggle">
+                {{this}}
+               </span>
+              </span>
               <a class="graph-link" title="Graphs" href="{{graphLink this}}">
                <span class="glyphicon glyphicon-signal"/>
               </a>
@@ -462,18 +486,22 @@ html {
          <table class="table table-condensed benchmark-table">
           <thead>
           <tr>
-          <th class="col-md-5">Benchmark name</th>
-          <th class="col-md-2 text-right">previous</th>
-          <th class="col-md-2 text-right">change</th>
-          <th class="col-md-2 text-right">now</th>
-          <th class="col-md-1 text-left"></th>
+          <th class="col-xs-5">Benchmark name</th>
+          <th class="col-xs-2 text-right">previous</th>
+          <th class="col-xs-2 text-right">change</th>
+          <th class="col-xs-2 text-right">now</th>
+          <th class="col-xs-1 text-left"></th>
           </tr>
           </thead>
           <tbody>
            {{#each benchResults}}
             <tr class="row-result row-{{changeType}}">
             <td class="benchmark-name">
-	     {{name}}
+         <span class="benchmark-name-only">
+          <span class="benchmark-name-toggle">
+	       {{name}}
+          </span>
+         </span>
 	     <a class="graph-link" title="Graphs" href="{{graphLink name ../../rev.summary.hash}}">
 	      <span class="glyphicon glyphicon-signal"/>
 	     </a>
@@ -566,18 +594,22 @@ html {
          <table class="table table-condensed benchmark-table">
           <thead>
           <tr>
-          <th class="col-md-5">Benchmark name</th>
-          <th class="col-md-2 text-right">previous</th>
-          <th class="col-md-2 text-right">change</th>
-          <th class="col-md-2 text-right">now</th>
-          <th class="col-md-1 text-right"></th>
+          <th class="col-xs-5">Benchmark name</th>
+          <th class="col-xs-2 text-right">previous</th>
+          <th class="col-xs-2 text-right">change</th>
+          <th class="col-xs-2 text-right">now</th>
+          <th class="col-xs-1 text-right"></th>
           </tr>
           </thead>
           <tbody>
            {{#each benchResults}}
             <tr class="row-result row-{{changeType}}">
             <td class="benchmark-name">
-	     {{name}}
+         <span class="benchmark-name-only">
+          <span class="benchmark-name-toggle">
+	       {{name}}
+          </span>
+         </span>
 	     <a class="graph-link" title="Graphs" href="{{graphLink name ../../rev1.summary.hash ../../rev2.summary.hash}}">
 	      <span class="glyphicon glyphicon-signal"/>
 	     </a>
