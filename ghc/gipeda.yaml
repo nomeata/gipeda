@@ -44,7 +44,6 @@ benchmarks:
     type: float
 
   - match: "nofib/instr/*"
-    unit: seconds
     group: Nofib instruction counts
     type: integral
 
