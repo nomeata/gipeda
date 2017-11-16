@@ -50,7 +50,7 @@ var routes = {
             todo = ['out/benchNames.json','out/reports/' + viewData.hash + '.json'];
             if (data && data.revisions) {
                 var rev = data.revisions[viewData.hash];
-                if (rev && rev.summary && rev.summary.parents) {
+                if (rev && rev.summary && rev.summary.parents && rev.summary.parents.length > 0) {
                     var parentHash = rev.summary.parents[0];
                     todo.push('out/reports/' + parentHash + '.json');
                 }
