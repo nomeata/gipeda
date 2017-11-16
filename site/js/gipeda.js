@@ -358,6 +358,7 @@ function setting_for(name) {
     return benchSettings;
 }
 
+var unitPrefix = [["G", 9], ["M", 6], ["k", 3], ["", 0], ["m", -3], ["u", -6], ["n", -9]]
 
 // The following logic should be kept in sync with toResult in ReportTypes.hs
 function compareResults (res1, res2) {
@@ -366,11 +367,27 @@ function compareResults (res1, res2) {
     var name = res1? res1.name : res2.name;
     var s = setting_for(name);
 
+    var value1 = res1 ? res1.value : null;
+    var value2 = res2 ? res2.value : null;
+    var unit = s.unit;
+
+    for (var i = 0; i < unitPrefix.length; i++) {
+        var magnitude = Math.pow(10, unitPrefix[i][1]);
+        if (i == unitPrefix.length - 1
+          || ( (value1 === null || value1 > magnitude)
+            && (value2 === null || value2 > magnitude))) {
+          if (value1 !== null) { value1 = (value1 / magnitude).toFixed(2); }
+          if (value2 !== null) { value2 = (value2 / magnitude).toFixed(2); }
+          unit = unitPrefix[i][0] + unit;
+          break;
+        }
+    }
+
     var res = {
         name: name,
-        previous:    res1 ? res1.value : null,
-        value:       res2 ? res2.value : null,
-        unit:        s.unit,
+        previous:    value1,
+        value:       value2,
+        unit:        unit,
         important:   s.important,
         changeType: "Boring",
         change: "foobar",
@@ -434,10 +451,22 @@ function singleResult (res) {
     var name = res.name;
     var s = setting_for(name);
 
+    var value = res.value;
+    var unit = s.unit;
+
+    for (var i = 0; i < unitPrefix.length; i++) {
+        var magnitude = Math.pow(10, unitPrefix[i][1]);
+        if (i == unitPrefix.length - 1 || value > magnitude) {
+          value /= magnitude;
+          unit = unitPrefix[i][0] + unit;
+          break;
+        }
+    }
+
     return  {
         name: name,
         previous:    null,
-        value:       res.value,
+        value:       value.toFixed(2),
         unit:        s.unit,
         important:   s.important,
         changeType: "Boring",
