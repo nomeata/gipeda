@@ -47,6 +47,9 @@ benchmarks:
     group: Nofib instruction counts
     type: integral
 
+  - match: "nofib/instr/cacheprof"
+    threshold: 10
+
   - match: "buildtime/*"
     unit: seconds
     group: Buildtimes
