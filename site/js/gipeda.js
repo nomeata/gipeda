@@ -343,6 +343,8 @@ function setting_for(name) {
     var benchSettings = {
         smallerIsBetter: true,
         unit: "",
+        unitFull: "",
+        rescalable: false,
         type: "integral",
         group: "",
         threshold: 3,
@@ -360,6 +362,31 @@ function setting_for(name) {
 
 var unitPrefix = [["G", 9], ["M", 6], ["k", 3], ["", 0], ["m", -3], ["u", -6], ["n", -9]]
 
+// Make numbers more human-readable.
+function rescale(s, res) {
+    // Only rescale nonzero rescalable numbers.
+    if (!s.rescalable || (!res.previous && !res.value)) { return; }
+
+    // If the result is a comparison, i.e., contains both res.previous and
+    // res.value, then both are rescaled together.
+    for (var i = 0; i < unitPrefix.length; i++) {
+        var magnitude = Math.pow(10, unitPrefix[i][1]);
+        if (i == unitPrefix.length - 1  // Fallback to nano
+          || ( (res.previous === null || res.previous >= magnitude)
+            && (res.value === null || res.value >= magnitude))) {
+          if (res.previous !== null) { res.previous = res.previous / magnitude; }
+          if (res.value !== null) { res.value = res.value / magnitude; }
+          res.unit = unitPrefix[i][0] + s.unit;
+          break;
+        }
+    }
+
+    if (s.type == "float" || magnitude > 1) {
+      if (res.previous !== null) { res.previous = res.previous.toFixed(2); }
+      if (res.value !== null) { res.value = res.value.toFixed(2); }
+    }
+}
+
 // The following logic should be kept in sync with toResult in ReportTypes.hs
 function compareResults (res1, res2) {
     if (!res1 && !res2) { return; }
@@ -367,27 +394,11 @@ function compareResults (res1, res2) {
     var name = res1? res1.name : res2.name;
     var s = setting_for(name);
 
-    var value1 = res1 ? res1.value : null;
-    var value2 = res2 ? res2.value : null;
-    var unit = s.unit;
-
-    for (var i = 0; i < unitPrefix.length; i++) {
-        var magnitude = Math.pow(10, unitPrefix[i][1]);
-        if (i == unitPrefix.length - 1
-          || ( (value1 === null || value1 > magnitude)
-            && (value2 === null || value2 > magnitude))) {
-          if (value1 !== null) { value1 = (value1 / magnitude).toFixed(2); }
-          if (value2 !== null) { value2 = (value2 / magnitude).toFixed(2); }
-          unit = unitPrefix[i][0] + unit;
-          break;
-        }
-    }
-
     var res = {
         name: name,
-        previous:    value1,
-        value:       value2,
-        unit:        unit,
+        previous:    res1 ? res1.value : null,
+        value:       res2 ? res2.value : null,
+        unit:        s.unit,
         important:   s.important,
         changeType: "Boring",
         change: "foobar",
@@ -442,6 +453,8 @@ function compareResults (res1, res2) {
         }
     }
 
+    rescale(s, res);
+
     return res;
 }
 
@@ -451,27 +464,19 @@ function singleResult (res) {
     var name = res.name;
     var s = setting_for(name);
 
-    var value = res.value;
-    var unit = s.unit;
-
-    for (var i = 0; i < unitPrefix.length; i++) {
-        var magnitude = Math.pow(10, unitPrefix[i][1]);
-        if (i == unitPrefix.length - 1 || value > magnitude) {
-          value /= magnitude;
-          unit = unitPrefix[i][0] + unit;
-          break;
-        }
-    }
-
-    return  {
+    var newRes = {
         name: name,
         previous:    null,
-        value:       value.toFixed(2),
+        value:       res.value,
         unit:        s.unit,
         important:   s.important,
         changeType: "Boring",
         change:     "",
     };
+
+    rescale(s, newRes);
+
+    return newRes;
 }
 
 // Some views require the data to be prepared in ways that are 
