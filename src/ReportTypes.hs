@@ -109,6 +109,7 @@ instance FromJSON ChangeType
 data BenchGroup = BenchGroup
     { groupName :: String
     , groupMembers :: [BenchName]
+    , groupUnitFull :: Maybe String
     }
  deriving (Generic)
 instance ToJSON BenchGroup

@@ -352,7 +352,7 @@ html {
        <div class="panel-heading" role="tab" id="heading-{{@index}}">
         <h4 class="panel-title">
          <a class="accordion-toggle" data-toggle="collapse" href="#table-{{@index}}">
-         {{groupName}}
+         {{groupName}}{{#if unitFull}}, {{unitFull}}{{/if}}
          </a>
         </h4>
        </div>
@@ -471,7 +471,7 @@ html {
        <div class="panel-heading" role="tab" id="heading-{{@index}}">
         <h4 class="panel-title">
          <a class="accordion-toggle" data-toggle="collapse" href="#table-{{@index}}">
-         {{groupName}}
+         {{groupName}}{{#if unitFull}}, {{unitFull}}{{/if}}
          <span class="stats pull-right">
           {{> summary-icons groupStats}}
           <span class="indicator-toggled glyphicon glyphicon-chevron-down text-grey"/>
@@ -488,9 +488,9 @@ html {
           <tr>
           <th class="col-xs-5">Benchmark name</th>
           <th class="col-xs-2 text-right">previous</th>
-          <th class="col-xs-2 text-right">change</th>
           <th class="col-xs-2 text-right">now</th>
           <th class="col-xs-1 text-left"></th>
+          <th class="col-xs-2 text-right">change</th>
           </tr>
           </thead>
           <tbody>
@@ -507,9 +507,9 @@ html {
 	     </a>
 	    </td>
             <td class="text-right">{{previous}}</td>
-            <td class="text-right">{{change}}</td>
             <td class="text-right">{{value}}</td>
             <td class="text-left">{{unit}}</td>
+            <td class="text-right">{{change}}</td>
             </tr>
            {{/each}}
           </tbody>
@@ -579,7 +579,7 @@ html {
        <div class="panel-heading" role="tab" id="heading-{{@index}}">
         <h4 class="panel-title">
          <a class="accordion-toggle" data-toggle="collapse" href="#table-{{@index}}">
-         {{groupName}}
+         {{groupName}}{{#if unitFull}}, {{unitFull}}{{/if}}
          <span class="stats pull-right">
           {{> summary-icons groupStats}}
           <span class="indicator-toggled glyphicon glyphicon-chevron-down text-grey"/>
@@ -596,9 +596,9 @@ html {
           <tr>
           <th class="col-xs-5">Benchmark name</th>
           <th class="col-xs-2 text-right">previous</th>
-          <th class="col-xs-2 text-right">change</th>
           <th class="col-xs-2 text-right">now</th>
           <th class="col-xs-1 text-right"></th>
+          <th class="col-xs-2 text-right">change</th>
           </tr>
           </thead>
           <tbody>
@@ -615,9 +615,9 @@ html {
 	     </a>
 	    </td>
             <td class="text-right">{{previous}}</td>
-            <td class="text-right">{{change}}</td>
             <td class="text-right">{{value}}</td>
             <td class="text-left">{{unit}}</td>
+            <td class="text-right">{{change}}</td>
             </tr>
            {{/each}}
           </tbody>
