@@ -31,15 +31,24 @@ do
 			date -R
 			echo "Benchmarking $rev... (reachable from $branchtip)"
 			$scripts/run-speed.sh "$rev" >/dev/null
-			rm -f "$rev.json"
+
+			if [ -e $rev.log -a "$(wc -c < $rev.log)" -gt 10000000 ]
+			then
+				mv $rev.log $rev.log.broken
+			fi
+			if [ -e $rev.log.broken -a "$(wc -c < $rev.log.broken)" -gt 10000000 ]
+			then
+				truncate --size=<1M $rev.log.broken
+				echo "Truncated too large log file" >> $rev.log.broken
+			fi
 
 			if [ -e $rev.log ]
 			then
 				git add $rev.log
-				git commit -m "Added log for $rev"
+				git commit -m "Log for $rev from $branchtip"
 			else
 				git add $rev.log.broken
-				git commit -m "Added log for $rev (failed)"
+				git commit -m "Log for $rev from $branchtip (failed)"
 			fi
 			git push
 			git checkout --
