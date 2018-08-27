@@ -50,7 +50,7 @@ var routes = {
             todo = ['out/benchNames.json','out/reports/' + viewData.hash + '.json'];
             if (data && data.revisions) {
                 var rev = data.revisions[viewData.hash];
-                if (rev && rev.summary && rev.summary.parents) {
+                if (rev && rev.summary && rev.summary.parents && rev.summary.parents.length > 0) {
                     var parentHash = rev.summary.parents[0];
                     todo.push('out/reports/' + parentHash + '.json');
                 }
@@ -343,6 +343,8 @@ function setting_for(name) {
     var benchSettings = {
         smallerIsBetter: true,
         unit: "",
+        unitFull: "",
+        rescalable: false,
         type: "integral",
         group: "",
         threshold: 3,
@@ -358,6 +360,32 @@ function setting_for(name) {
     return benchSettings;
 }
 
+var unitPrefix = [["G", 9], ["M", 6], ["k", 3], ["", 0], ["m", -3], ["u", -6], ["n", -9]]
+
+// Make numbers more human-readable.
+function rescale(s, res) {
+    // Only rescale nonzero rescalable numbers.
+    if (!s.rescalable || (!res.previous && !res.value)) { return; }
+
+    // If the result is a comparison, i.e., contains both res.previous and
+    // res.value, then both are rescaled together.
+    for (var i = 0; i < unitPrefix.length; i++) {
+        var magnitude = Math.pow(10, unitPrefix[i][1]);
+        if (i == unitPrefix.length - 1  // Fallback to nano
+          || ( (res.previous === null || res.previous >= magnitude)
+            && (res.value === null || res.value >= magnitude))) {
+          if (res.previous !== null) { res.previous = res.previous / magnitude; }
+          if (res.value !== null) { res.value = res.value / magnitude; }
+          res.unit = unitPrefix[i][0] + s.unit;
+          break;
+        }
+    }
+
+    if (s.type == "float" || magnitude > 1) {
+      if (res.previous !== null) { res.previous = res.previous.toFixed(2); }
+      if (res.value !== null) { res.value = res.value.toFixed(2); }
+    }
+}
 
 // The following logic should be kept in sync with toResult in ReportTypes.hs
 function compareResults (res1, res2) {
@@ -425,6 +453,8 @@ function compareResults (res1, res2) {
         }
     }
 
+    rescale(s, res);
+
     return res;
 }
 
@@ -434,7 +464,7 @@ function singleResult (res) {
     var name = res.name;
     var s = setting_for(name);
 
-    return  {
+    var newRes = {
         name: name,
         previous:    null,
         value:       res.value,
@@ -443,6 +473,10 @@ function singleResult (res) {
         changeType: "Boring",
         change:     "",
     };
+
+    rescale(s, newRes);
+
+    return newRes;
 }
 
 // Some views require the data to be prepared in ways that are 
@@ -466,6 +500,8 @@ function calculate_groups(rev1, rev2) {
       }).filter(function (br) {return br;});
       return {
 	groupName: group.groupName || "Benchmarks",
+    unit: group.groupUnit,
+    unitFull: group.groupUnitFull,
 	benchResults: benchmarks,
 	groupStats: groupStats(benchmarks),
       };

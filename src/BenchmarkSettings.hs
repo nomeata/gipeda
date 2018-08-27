@@ -24,6 +24,8 @@ type BenchName = String
 data BenchSettings = BenchSettings
     { smallerIsBetter :: Bool
     , unit :: String
+    , unitFull :: Maybe String
+    , rescalable :: Bool
     , numberType :: NumberType
     , group :: String
     , threshold :: Double
@@ -32,8 +34,9 @@ data BenchSettings = BenchSettings
     deriving (Show, Generic)
 instance ToJSON BenchSettings
 
+-- Keep in sync with setting_for() in gipeda.js
 defaultBenchSettings :: BenchSettings
-defaultBenchSettings = BenchSettings True "" IntegralNT "" 3 True
+defaultBenchSettings = BenchSettings True "" Nothing False IntegralNT "" 3 True
 
 newtype S = S { unS :: BenchName -> BenchSettings }
 newtype SM = SM (BenchName -> (BenchSettings -> BenchSettings))
@@ -60,6 +63,8 @@ instance FromJSON SM where
         m <- o .: "match"
         mt <- o .:? "type"
         mu <- o .:? "unit"
+        muf <- o.:? "unitFull"
+        mr <- o .:? "rescalable"
         mg <- o .:? "group"
         ms <- o .:? "smallerIsBetter"
         mth <- o .:? "threshold"
@@ -68,6 +73,8 @@ instance FromJSON SM where
             if n `matches` m then
                b { numberType      = fromMaybe (numberType b) mt
                  , unit            = fromMaybe (unit b) mu
+                 , unitFull        = muf
+                 , rescalable      = fromMaybe (rescalable b) mr
                  , group           = fromMaybe (group b) mg
                  , smallerIsBetter = fromMaybe (smallerIsBetter b) ms
                  , threshold       = fromMaybe (threshold b) mth
