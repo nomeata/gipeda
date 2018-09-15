@@ -26,7 +26,8 @@ test -d jquery-ui || {
 test -e jquery.timeago.js ||
 	wget -c https://timeago.yarp.com/jquery.timeago.js
 test -d flot || {
-	wget -c https://www.flotcharts.org/downloads/flot-0.8.3.zip
+	wget -c http://www.flotcharts.org/downloads/flot-0.8.3.zip
+	echo "ca33e0e707b0ac48f8962baaab321a006ef35cf73ea5bece95a30f23d49b9f31  flot-0.8.3.zip" | sha256sum -c
 	unzip flot-0.8.3.zip
 	rm -f flot-0.8.3.zip
 }
