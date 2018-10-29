@@ -53,24 +53,38 @@ Setting it up
 
  * Download a bunch of JavaScript libraries by running `./install-jslibs.sh`.	
 
-Gipeda does not work without at least some logs, so lets add them.
+Gipeda does not work without at least some logs, so let's add them.
 
 Adding data
 -----------
 
-Gipeda expect simple CSV files for each revision, of the form
+Gipeda expects to find performance data in the `logs` directory, where the
+data for each Git revision is named `<gitrev>.log`, e.g.
+`logs/0279a7d327a3b962ffa93a95d47ea5d9ee31e25c.log`.
+
+Handling data
+-------------
+
+### Criterion data
+
+Gipeda has built-in functionality for handling Criterion output, if your
+benchmarks use the Criterion framework.
+
+Just put Criterion logs directly in the `logs` directory (named appropriately),
+and copy the `binary/log2csv` script to the base directory of this repo, e.g.
+
+    cp binary/log2csv .
+
+### Custom or non-Criterion data
+
+For non-Criterion data (text base logs, JUnit reports, or anything else), you
+will need to make your own script `log2csv` and put it in the base directory of
+this repo. This script should expect the filename of a log on the command line,
+and should output a CSV file for that Git revision, of the form
 
     benchmark1;1000
     benchmark2;20.123
     benchmark3;0
-
-But likely your benchmark suite does not generate them in this format directly.
-Hence, put whatever format you have (text base logs, JUnit reports, whatever)
-into the directory `logs`, named `<gitrev>.log`, e.g.
-`logs/0279a7d327a3b962ffa93a95d47ea5d9ee31e25c.log`.
-
-Then create a script `log2csv` that expects the filename of such a log on
-the command line and produces the desired CSV file.
 
 Running gipeda
 --------------
@@ -79,7 +93,7 @@ With everything in place, you can now run
 
     ./gipeda
 
-and it will create a bunch of JSON files in `site/out/`.  With `./gipda -j4`
+and it will create a bunch of JSON files in `site/out/`.  With `./gipeda -j4`
 you can parallelize it.
 
 You should do this everytime a new log file appears in `logs/`. You should also
