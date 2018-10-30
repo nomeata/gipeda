@@ -1,19 +1,70 @@
+# The site title
 title: Gipeda itself
+
+# A link that (ideally) displays the difference between two commits of the repository.
+# The strings "{{rev}}" and "{{base}}" are replaced by the full SHA hashes of the two
+# commits to compare.
 diffLink: "https://git.nomeata.org/?p=gipeda.git;a=commitdiff;h={{rev}};hp={{base}}"
+
+# Arbitrary HTML code that will be displayed on a single commit's page, useful to
+# reference other resources such as a repository browser or a code review program.
+# The string "{{rev}}" is replaced by the full SHA hash of the commit.
 revisionInfo: '<a href="https://github.com/nomeata/gipeda/commit/{{rev}}">View Diff</a>'
+
+# Number of commits shown on the start page
 limitRecent: 20
+
+# Commit hash of the first commit to take into account.  Useful to limit the scope of
+# gipeda in projects with a large history.
 start: 65b3eede043ff5d4718724d220a82bbc8adc3280
+
+# A glob (as understood by `git tag -l`) specifying which tags should be shown on the
+# main page. By default, no tags are shown; use "*" to show all.
 interestingTags: "*"
 
+# Likewise, for branches.
+# interestingBranches:
+
+# A list of benchmark settings.
 benchmarks:
+
+    # A file glob that determines to what benchmarks these settings apply:
+    #   match: "*" will apply these settings to all benchmarks
+    #   match: "regression/*" will apply only to those whose title starts with regression/.
   - match: "*"
+
+    # By default (or if this is False), gipeda assumes that a greater number indicates
+    # improvement, and a smaller number indicates regression (e.g. requests per second).
+    # Setting to True inverts this logic (e.g. runtime).
     smallerIsBetter: False
-    threshold: 1
+
+    # Arbitrary unit, to be printed in the tables and on the graph axes.
+    unit: qwacks
+
+    # One of "float", "integral", or "small integral".
+    # For the first two, differences are expressed in percentages (+10%), while for the
+    # latter, differences are expressed in absolute differences (+2). Absolute differences
+    # are more suitable for numbers like test suite failures, which should usually be zero
+    # or very small.
     type: integral
+
+    # Any change by a percentage greater than this number is flagged as an improvement or
+    # regression; any change by less than this number is considered to be uninteresting,
+    # and is not highlighted in the results.
+    threshold: 1
+
+    # The benchmarks are displayed in groups; all benchmarks that have the same string here
+    # are grouped under this title.
     group: (ungrouped)
+
+    # True by default. If this is False, a regression in this benchmark will not be included
+    # in the summary for the whole commit. Use this if you have very volatile tests that
+    # would produce too much noise on the main page.
+    important: True
+
   - match: "loc/*"
     unit: lines of code
     group: Lines of Code
   - match: comment-rate
-    unit: percentags
+    unit: percentage
     group: Code quality
