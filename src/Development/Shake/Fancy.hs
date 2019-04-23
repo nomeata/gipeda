@@ -1,4 +1,4 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, ConstraintKinds #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, ConstraintKinds, TypeFamilies #-}
 module Development.Shake.Fancy
     ( module Development.Shake
 
@@ -172,7 +172,7 @@ cmdWrap :: String -> S.Action a -> Action a
 cmdWrap cmd act =
     describe (quietly act) '!' ("running " ++ cmd)
 
-addOracle :: (S.ShakeValue q, S.ShakeValue a) => (q -> Action a) -> S.Rules (q -> Action a)
+addOracle :: (RuleResult q ~ a, S.ShakeValue q, S.ShakeValue a) => (q -> Action a) -> S.Rules (q -> Action a)
 addOracle action = do
     query <- S.addOracle (\q -> wrapAction (action q) (show q))
     return $ liftAction . query
