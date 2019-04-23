@@ -41,9 +41,11 @@ defaultBenchSettings = BenchSettings True "" Nothing False IntegralNT "" 3 True
 newtype S = S { unS :: BenchName -> BenchSettings }
 newtype SM = SM (BenchName -> (BenchSettings -> BenchSettings))
 
+instance Semigroup SM where
+    (<>) (SM f) (SM g) = SM (\n -> g n . f n)
+
 instance Monoid SM where
     mempty = SM (const id)
-    mappend (SM f) (SM g) = SM (\n -> g n . f n)
 
 instance FromJSON NumberType where
     parseJSON = withText "type" $ \t -> case t of
