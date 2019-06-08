@@ -14,8 +14,9 @@ revisionInfo: '<a href="https://github.com/nomeata/gipeda/commit/{{rev}}">View D
 # Number of commits shown on the start page
 limitRecent: 20
 
-# Commit hash of the first commit to take into account.  Useful to limit the scope of
-# gipeda in projects with a large history.
+# Commit hash of the first commit to take into account.
+# Useful to limit the scope of gipeda in projects with a large history.
+# This should have a log file, else the output may be confusing
 start: 65b3eede043ff5d4718724d220a82bbc8adc3280
 
 # A glob (as understood by `git tag -l`) specifying which tags should be shown on the
