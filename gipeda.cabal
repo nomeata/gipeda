@@ -36,6 +36,8 @@ extra-source-files:
   site/js/gipeda.js,
   install-jslibs.sh
 cabal-version:       >=1.10
+Tested-With: GHC ==8.4.4 || ==8.6.5
+
 
 executable gipeda
   main-is:
