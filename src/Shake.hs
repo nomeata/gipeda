@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, GeneralizedNewtypeDeriving, NondecreasingIndentation #-}
+{-# LANGUAGE DeriveDataTypeable, GeneralizedNewtypeDeriving, NondecreasingIndentation, TypeFamilies #-}
 module Shake where
 
 import Development.Shake.Fancy hiding (withTempFile)
@@ -90,13 +90,17 @@ descendsFromStart s hash = case S.start s of
 
 newtype LimitRecent = LimitRecent ()
     deriving (Show,Typeable,Eq,Hashable,Binary,NFData)
+type instance RuleResult LimitRecent = Integer
 
 newtype GetIndexHTMLFile = GetIndexHTMLFile ()
     deriving (Show,Typeable,Eq,Hashable,Binary,NFData)
+type instance RuleResult GetIndexHTMLFile = BS.ByteString
 newtype GetGipedaJSFile = GetGipedaJSFile ()
     deriving (Show,Typeable,Eq,Hashable,Binary,NFData)
+type instance RuleResult GetGipedaJSFile = BS.ByteString
 newtype GetInstallJSLibsScript = GetInstallJSLibsScript ()
     deriving (Show,Typeable,Eq,Hashable,Binary,NFData)
+type instance RuleResult GetInstallJSLibsScript = BS.ByteString
 
 data LogSource = FileSystem | BareGit | NoLogs deriving Show
 

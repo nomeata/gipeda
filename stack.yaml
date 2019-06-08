@@ -1,11 +1,9 @@
-resolver: lts-6.2
+resolver: lts-13.18
 
 packages:
 - '.'
 
-extra-deps: []
-
-flags: {}
-
-extra-package-dbs: []
+extra-deps:
+- gitlib-3.1.2@sha256:0f7142d8d58f7717242d65238e8814f17f9bbe7224a463adf34f75262c536227
+- gitlib-libgit2-3.1.2.1@sha256:36bc92f117158440ca69e32051aabdf9df75be8a3fb5f45dff8828898e615a0a
 
